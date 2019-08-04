@@ -4,7 +4,7 @@ import (
 	context "context"
 	"encoding/json"
 	config "github.com/Basic-Components/jwtrpc/config"
-	pb "github.com/Basic-Components/jwtrpc/jwtrpc"
+	pb "github.com/Basic-Components/jwtrpc/jwtrpcdeclare"
 	"github.com/Basic-Components/jwtrpc/jwtsigner"
 	"github.com/Basic-Components/jwtrpc/jwtverifier"
 	"github.com/Basic-Components/jwtrpc/logger"

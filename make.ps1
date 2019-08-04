@@ -33,9 +33,9 @@ if ($cmd -eq "all"){
                 mkdir $target
             }
             if ($env:GOOS -eq "windows"){
-                go build -o $target/$name.exe server/main.go
+                go build -o $target/$name.exe server/server.go
             }else {
-                go build -o $target/$name server/main.go
+                go build -o $target/$name server/server.go
             }
             
         }
@@ -55,7 +55,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name.exe server/main.go
+    go build -o $target/$name.exe server/server.go
 }elseif ($cmd -eq "mac") {
     $env:GOARCH="amd64"
     $env:GOOS="darwin"
@@ -63,7 +63,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     
 }elseif ($cmd -eq "mac32") {
     $env:GOARCH="386"
@@ -72,7 +72,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
 }elseif ($cmd -eq "linux32") {
     $env:GOARCH="386"
     $env:GOOS="linux"
@@ -80,7 +80,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
 }elseif ($cmd -eq "linux64") {
     $env:GOARCH="amd64"
     $env:GOOS="linux"
@@ -88,7 +88,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
 }elseif ($cmd -eq "linuxarm") {
     $env:GOARCH="arm"
     $env:GOOS="linux"
@@ -96,7 +96,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
 }else{
     echo "unknown cmd $cmd"
 }

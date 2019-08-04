@@ -60,10 +60,10 @@ all)
             fi
             case $goos in
             windows)
-                go build -o $target/$name.exe server/main.go
+                go build -o $target/$name.exe server/server.go
                 ;;
             *)
-                go build -o $target/$name server/main.go
+                go build -o $target/$name server/server.go
                 ;;
             esac
         done
@@ -76,7 +76,7 @@ win32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name.exe server/main.go
+    go build -o $target/$name.exe server/server.go
     ;;
 win64)
     export GOARCH="amd64"
@@ -85,7 +85,7 @@ win64)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name.exe server/main.go
+    go build -o $target/$name.exe server/server.go
     ;;
 mac)
     export GOARCH="amd64"
@@ -94,7 +94,7 @@ mac)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     ;;
 mac32)
     export GOARCH="386"
@@ -103,7 +103,7 @@ mac32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     ;;
 linux32)
     export GOARCH="386"
@@ -112,7 +112,7 @@ linux32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     ;;
 linux64)
     export GOARCH="amd64"
@@ -121,7 +121,7 @@ linux64)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     ;;
 linuxarm)
     export GOARCH="arm"
@@ -130,7 +130,7 @@ linuxarm)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/main.go
+    go build -o $target/$name server/server.go
     ;;
 *)
     echo "unknown cmd $cmd"
