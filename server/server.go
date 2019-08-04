@@ -8,6 +8,8 @@ import (
 	"github.com/Basic-Components/jwtrpc/jwtsigner"
 	"github.com/Basic-Components/jwtrpc/jwtverifier"
 	"github.com/Basic-Components/jwtrpc/logger"
+	"github.com/Basic-Components/jwtrpc/signals"
+	"github.com/Basic-Components/jwtrpc/keygen"
 	"net"
 
 	grpc "google.golang.org/grpc"
