@@ -1,0 +1,34 @@
+syntax = "proto3";
+package jwtrpcdeclare;
+
+service JwtService {
+    rpc Sign (SignRequest) returns (SignResponse){}
+    rpc Verify (VerifyRequest) returns (VerifyResponse){}
+}
+
+message SignRequest {
+    bytes jsondata = 1;
+}
+message VerifyRequest {
+    bytes tokendata = 1;
+}
+
+message StatusData {
+    enum Status {
+      SUCCEED = 0;
+      ERROR = 1;
+    }
+    Status status =1;
+    string msg=2;
+}
+  
+
+message SignResponse {
+    StatusData status = 1;
+    string data = 2;
+}
+
+message VerifyResponse {
+    StatusData status = 1;
+    bytes data = 2;
+}
