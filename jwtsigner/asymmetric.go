@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	utils "github.com/Basic-Components/jwtrpc/utils"
+	utils "github.com/Basic-Components/jwt-tools/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 

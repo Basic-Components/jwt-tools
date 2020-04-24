@@ -8,7 +8,7 @@ import (
 var ErrUnexpectedAlgo = errors.New("unknown algo type key")
 
 // ErrLoadPrivateKey 私钥无法阅读
-var ErrLoadPrivateKey = errors.New("couldn't read key")
+var ErrLoadPrivateKey = errors.New("couldn't read private key")
 
 // ErrParseClaimsToJSON 无法加载JSON
 var ErrParseClaimsToJSON = errors.New("Couldn't parse claims JSON")

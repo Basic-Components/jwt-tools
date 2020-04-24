@@ -67,7 +67,7 @@ func GenRsaKey(bits int, keyname string) error {
 	return nil
 }
 
-// AutoGenRsaKey 随机生成一对密钥
+// AutoGenRsaKey 随机生成一对rs256加密的密钥对
 func AutoGenRsaKey() error {
 	bits := int(mathrand.Int31n(1000-250) + 250)
 	return GenRsaKey(bits, "autogen")

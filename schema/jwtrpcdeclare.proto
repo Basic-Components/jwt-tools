@@ -1,16 +1,27 @@
 syntax = "proto3";
 package jwtrpcdeclare;
-
+option go_package = "jwtrpcdeclare";
 service JwtService {
-    rpc Sign (SignRequest) returns (SignResponse){}
-    rpc Verify (VerifyRequest) returns (VerifyResponse){}
+    // SignJSON 为JSON字符串签名
+    rpc SignJSON (SignJSONRequest) returns (SignResponse){}
+    // VerifyJSON 将token解析到的负载转码为JSON字符串返回
+    rpc VerifyJSON (VerifyRequest) returns (VerifyJSONResponse){}
+}
+enum Algo {
+    HASH = 0;
+    RSA = 1;
 }
 
-message SignRequest {
-    bytes jsondata = 1;
+message SignJSONRequest {
+    Algo algo = 1;
+    string payload = 2;
+    string aud = 3;
+    string iss= 4; 
+    int64 exp = 5;
 }
 message VerifyRequest {
-    bytes tokendata = 1;
+    Algo algo = 1;
+    string tokendata = 2;
 }
 
 message StatusData {
@@ -21,14 +32,13 @@ message StatusData {
     Status status =1;
     string msg=2;
 }
-  
 
 message SignResponse {
     StatusData status = 1;
     string data = 2;
 }
 
-message VerifyResponse {
+message VerifyJSONResponse {
     StatusData status = 1;
-    bytes data = 2;
+    string data = 2;
 }

@@ -1,19 +1,18 @@
-package main
+package main //import "github.com/Basic-Components/jwt-tools/jwtcenter"
 
 import (
 	context "context"
 	"encoding/json"
-	config "github.com/Basic-Components/jwtrpc/config"
-	pb "github.com/Basic-Components/jwtrpc/jwtrpcdeclare"
-	"github.com/Basic-Components/jwtrpc/jwtsigner"
-	"github.com/Basic-Components/jwtrpc/jwtverifier"
-	"github.com/Basic-Components/jwtrpc/logger"
-	"github.com/Basic-Components/jwtrpc/signals"
-	"github.com/Basic-Components/jwtrpc/keygen"
+
 	"net"
 
+	pb "github.com/Basic-Components/jwt-tools/jwtcenter/jwtrpcdeclare"
+	log "github.com/Basic-Components/jwt-tools/jwtcenter/logger"
+	script "github.com/Basic-Components/jwt-tools/jwtcenter/script"
+	"github.com/Basic-Components/jwt-tools/jwtsigner"
+	"github.com/Basic-Components/jwt-tools/jwtverifier"
+	"github.com/Basic-Components/jwtrpc/logger"
 	grpc "google.golang.org/grpc"
-	logrus "github.com/sirupsen/logrus"
 )
 
 type rpcserver struct {
@@ -21,56 +20,42 @@ type rpcserver struct {
 	verifier *jwtverifier.Verifier
 }
 
-var signlog *logrus.Entry= logger.Log.WithFields(logrus.Fields{
-	"API": "Signer",
-})
-var verifylog *logrus.Entry= logger.Log.WithFields(logrus.Fields{
-	"API": "Verify",
-})
-
 func (s *rpcserver) Sign(ctx context.Context, in *pb.SignRequest) (*pb.SignResponse, error) {
-	signlog.WithFields(logrus.Fields{
-		"Jsondata": string(in.Jsondata),
-	}).Debug("get request")
+	log.Debug(map[string]interface{}{
+		"in": string(in.),
+		"Method":   "Sign",
+	}, "get request")
 	result, err := s.signer.Sign(in.Jsondata)
 	var status pb.StatusData
 	if err != nil {
 		status = pb.StatusData{
 			Status: pb.StatusData_ERROR,
 			Msg:    err.Error()}
-		signlog.WithFields(logrus.Fields{
-			"error": err.Error(),
-		}).Debug("send response")
+		log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Sign"}, "send response")
 		return &pb.SignResponse{
 			Status: &status}, nil
 	}
 	status = pb.StatusData{
 		Status: pb.StatusData_SUCCEED,
 		Msg:    "success"}
-	signlog.WithFields(logrus.Fields{
-		"response": string(result),
-	}).Debug("send response")
+	log.Debug(map[string]interface{}{"response": string(result), "Method": "Sign"}, "send response")
 	return &pb.SignResponse{
 		Status: &status,
 		Data:   result}, nil
-	
+
 }
 func (s *rpcserver) Verify(ctx context.Context, in *pb.VerifyRequest) (*pb.VerifyResponse, error) {
-	verifylog.WithFields(logrus.Fields{
-		"tokendata": string(in.Tokendata),
-	}).Debug("get request")
+	log.Debug(map[string]interface{}{"tokendata": string(in.Tokendata), "Method": "Verify"}, "get request")
 	result, err := s.verifier.Verify(in.Tokendata)
 	var status pb.StatusData
 	if err != nil {
 		status = pb.StatusData{
 			Status: pb.StatusData_ERROR,
 			Msg:    err.Error()}
-		verifylog.WithFields(logrus.Fields{
-				"error": err.Error(),
-			}).Debug("send response")
+		log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Verify"}, "send response")
 		return &pb.VerifyResponse{
 			Status: &status}, nil
-	} 
+	}
 	status = pb.StatusData{
 		Status: pb.StatusData_SUCCEED,
 		Msg:    "success"}
@@ -79,37 +64,33 @@ func (s *rpcserver) Verify(ctx context.Context, in *pb.VerifyRequest) (*pb.Verif
 		status = pb.StatusData{
 			Status: pb.StatusData_ERROR,
 			Msg:    err.Error()}
-		verifylog.WithFields(logrus.Fields{
-				"error": err.Error(),
-			}).Debug("send response")
+		log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Verify"}, "send response")
 		return &pb.VerifyResponse{
 			Status: &status}, nil
 	}
-	verifylog.WithFields(logrus.Fields{
-		"response": string(data),
-	}).Debug("send response")
+	log.Debug(map[string]interface{}{"response": string(data), "Method": "Verify"}, "send response")
 	return &pb.VerifyResponse{
 		Status: &status,
 		Data:   data}, nil
-	
+
 }
 
 // Run 执行签名验签服务
-func Run(conf config.ConfigType) {
-	signer,err := jwtsigner.NewFromPath(
+func Run(conf script.ConfigType) {
+	signer, err := jwtsigner.NewFromPath(
 		conf.SignMethod,
 		conf.PrivateKeyPath,
 		map[string]interface{}{"iss": conf.Iss})
-	if err != nil{
+	if err != nil {
 		logger.Log.Fatalf("init signer err: %v", err)
 	}
 	verifier, err := jwtverifier.NewFromPath(
 		conf.SignMethod,
 		conf.PublicKeyPath)
-	if err != nil{
+	if err != nil {
 		logger.Log.Fatalf("init verifier err: %v", err)
 	}
-	rpc := rpcserver{signer: signer,verifier: verifier}
+	rpc := rpcserver{signer: signer, verifier: verifier}
 	listener, err := net.Listen("tcp", conf.Address)
 	if err != nil {
 		logger.Log.Fatalf("failed to listen: %v", err)
@@ -125,16 +106,10 @@ func Run(conf config.ConfigType) {
 }
 
 func main() {
-	conf, signal := config.Init()
-	if signal != nil {
-		if signal == signals.GenkeySignal {
-			keygen.AutoGenRsaKey()
-		} else {
-			logger.Log.Error("init config error %v", signal)
-			return
-		}
-	} else {
-		logger.Log.Info("start server config %v", conf)
-		Run(conf)
-	}
+	conf := script.Init()
+	conf.ComponentName
+	log.Init(conf.LogLevel, map[string]interface{}{"component_name": conf.ComponentName})
+	log.Info(map[string]interface{}{"conf": conf}, "start server config %v")
+	Run(conf)
+
 }

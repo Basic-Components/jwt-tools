@@ -3,8 +3,7 @@ package jwtverifier
 import (
 	"regexp"
 
-	errs "github.com/Basic-Components/jwtrpc/errs"
-	utils "github.com/Basic-Components/jwtrpc/utils"
+	utils "github.com/Basic-Components/jwt-tools/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -44,7 +43,7 @@ func asymmetricNew(method string, key interface{}) (*Asymmetric, error) {
 func AsymmetricFromPEM(method string, keyPath string) (*Asymmetric, error) {
 	keybytes, err := utils.LoadData(keyPath)
 	if err != nil {
-		return nil, errs.LoadKeyError
+		return nil, ErrLoadPublicKey
 	}
 	if utils.IsEs(method) {
 		key, err := jwt.ParseECPublicKeyFromPEM(keybytes)
