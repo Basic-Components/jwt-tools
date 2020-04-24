@@ -3,6 +3,7 @@ module github.com/Basic-Components/jwtrpc
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.1
+	github.com/json-iterator/go v1.1.9
 	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/small-tk/pathlib v0.0.0-20190601032836-742166d9b695

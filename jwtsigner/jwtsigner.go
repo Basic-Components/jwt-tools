@@ -1,75 +1,47 @@
 package jwtsigner
 
 import (
-	"encoding/json"
 	"time"
 
-	errs "github.com/Basic-Components/jwtrpc/errs"
-	utils "github.com/Basic-Components/jwtrpc/utils"
-
 	jwt "github.com/dgrijalva/jwt-go"
-
-	uuid "github.com/satori/go.uuid"
+	jsoniter "github.com/json-iterator/go"
 )
 
-// Signer 签名器
-type Signer struct {
-	key           interface{}
-	alg           jwt.SigningMethod
-	defaultClaims map[string]interface{}
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+func makclaims(payload map[string]interface{}, aud string, iss string, exp int64) jwt.MapClaims {
+	var claims jwt.MapClaims = payload
+	now := time.Now().Unix()
+	if aud != "" {
+		claims["aud"] = aud
+	}
+	if iss != "" {
+		claims["iss"] = iss
+	}
+	if exp > 0 {
+		claims["exp"] = now + exp
+	}
+	return claims
 }
 
-// New 创建一个Signer对象
-func New(method string, key interface{}, claims map[string]interface{}) *Signer {
-	alg := jwt.GetSigningMethod(method)
-	//var signer *Signer
-	signer := &Signer{
-		key:           key,
-		alg:           alg,
-		defaultClaims: claims}
-	return signer
-}
+//Signer 签名器接口
+type Signer interface {
 
-// NewFromPath 从路径上读取密钥文件创建一个Signer对象
-func NewFromPath(method string, keyPath string, claims map[string]interface{}) (*Signer, error) {
-	keybytes, err := utils.LoadData(keyPath)
+	// Sign 签名一个无过期的token
+	Sign(payload map[string]interface{}, aud string, iss string) (string, error)
 
-	if err != nil {
-		return nil, errs.LoadKeyError
-	}
-	if utils.IsEs(method) {
-		key, err := jwt.ParseECPrivateKeyFromPEM(keybytes)
-		if err != nil {
-			return nil, err
-		}
-		return New(method, key, claims), nil
-	} else if utils.IsRs(method) {
-		key, err := jwt.ParseRSAPrivateKeyFromPEM(keybytes)
-		if err != nil {
-			return nil, err
-		}
-		return New(method, key, claims), nil
-	} else {
-		return nil, errs.SignerTypeError
-	}
-}
+	// ExpSign 签名一个会过期的token
+	ExpSign(payload map[string]interface{}, aud string, iss string, exp int64) (string, error)
 
-// Sign 用Signer对象签名
-func (signer *Signer) Sign(data []byte) (string, error) {
-	var claims jwt.MapClaims
-	if err := json.Unmarshal(data, &claims); err != nil {
-		return "", errs.ParseClaimsToJsonError
-	} else {
-		for key, value := range signer.defaultClaims {
-			claims[key] = value
-		}
-		claims["iat"] = int(time.Now().Unix())
-		claims["jti"] = uuid.NewV4().String()
-		token := jwt.NewWithClaims(signer.alg, claims)
-		if out, err := token.SignedString(signer.key); err == nil {
-			return out, nil
-		} else {
-			return "", errs.SignTokenError
-		}
-	}
+	// SignJSON 为json签名一个无过期的token
+	SignJSON(jsonpayload []byte, aud string, iss string) (string, error)
+
+	// ExpSignJSON 为json签名一个无过期的token
+	ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error)
+
+	// SignJSONString 为json字符串签名一个无过期的token
+	SignJSONString(jsonstringpayload string, aud string, iss string) (string, error)
+
+	// ExpSignJSONString 为json字符串签名一个会过期的token
+	ExpSignJSONString(jsonstringpayload string, aud string, iss string, exp int64) (string, error)
 }
