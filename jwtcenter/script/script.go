@@ -1,10 +1,10 @@
 package script
 
 import (
-	"errors"
+	"github.com/Basic-Components/jwt-tools/jwtcenter/errs"
 
+	log "github.com/Basic-Components/jwt-tools/jwtcenter/logger"
 	jsoniter "github.com/json-iterator/go"
-	log "github.com/sirupsen/logrus"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -15,10 +15,9 @@ var Config = ConfigType{}
 // Init 初始化命令行传入的参数到配置,返回值为false表示要执行创建秘钥否则为启动服务
 func Init() error {
 	config := DefaultConfig
-	log.SetFormatter(&log.JSONFormatter{})
 	defaultfileConfig, err := InitFileConfig()
 	if err != nil {
-		log.Warn("从默认路径文件初始化配置项错误")
+		log.Logger.Warn("从默认路径文件初始化配置项错误")
 	} else {
 		for k, v := range defaultfileConfig {
 			config[k] = v
@@ -26,7 +25,7 @@ func Init() error {
 	}
 	envConfig, err := InitEnvConfig()
 	if err != nil {
-		log.WithFields(map[string]interface{}{
+		log.Logger.WithFields(map[string]interface{}{
 			"error": err,
 		}).Warn("从环境变量初始化配置项错误")
 	} else {
@@ -36,7 +35,7 @@ func Init() error {
 	}
 	flagConfig, err := InitFlagConfig()
 	if err != nil {
-		log.WithFields(map[string]interface{}{
+		log.Logger.WithFields(map[string]interface{}{
 			"error": err,
 		}).Warn("从命令行参数初始化配置项错误")
 	} else {
@@ -45,7 +44,7 @@ func Init() error {
 		}
 	}
 
-	ConfigJSON, err := json.Marshal(Config)
+	ConfigJSON, err := json.Marshal(config)
 	if err != nil {
 		return err
 	}
@@ -57,9 +56,9 @@ func Init() error {
 		return nil
 	}
 	for _, err := range result.Errors() {
-		log.WithFields(map[string]interface{}{
+		log.Logger.WithFields(map[string]interface{}{
 			"error": err,
 		}).Error("配置检验错误")
 	}
-	return errors.New("配置文件参数错误")
+	return errs.ErrConfigParams
 }

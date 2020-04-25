@@ -48,13 +48,13 @@ func (signer *Symmetric) signany(claims jwt.MapClaims) (string, error) {
 
 // Sign 签名一个无过期的token
 func (signer *Symmetric) Sign(payload map[string]interface{}, aud string, iss string) (string, error) {
-	claims := makclaims(payload, aud, iss, 0)
+	claims := makeclaims(payload, aud, iss, 0)
 	return signer.signany(claims)
 }
 
 // ExpSign 签名一个会过期的token
 func (signer *Symmetric) ExpSign(payload map[string]interface{}, aud string, iss string, exp int64) (string, error) {
-	claims := makclaims(payload, aud, iss, exp)
+	claims := makeclaims(payload, aud, iss, exp)
 	return signer.signany(claims)
 }
 

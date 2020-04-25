@@ -21,7 +21,7 @@ message SignJSONRequest {
 }
 message VerifyRequest {
     Algo algo = 1;
-    string tokendata = 2;
+    string token = 2;
 }
 
 message StatusData {
@@ -35,10 +35,10 @@ message StatusData {
 
 message SignResponse {
     StatusData status = 1;
-    string data = 2;
+    string token = 2;
 }
 
 message VerifyJSONResponse {
     StatusData status = 1;
-    string data = 2;
+    string payload = 2;
 }

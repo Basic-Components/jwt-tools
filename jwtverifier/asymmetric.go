@@ -39,12 +39,8 @@ func asymmetricNew(method string, key interface{}) (*Asymmetric, error) {
 	return verifier, nil
 }
 
-// AsymmetricFromPEM 从路径上读取密钥文件创建一个Verifier对象
-func AsymmetricFromPEM(method string, keyPath string) (*Asymmetric, error) {
-	keybytes, err := utils.LoadData(keyPath)
-	if err != nil {
-		return nil, ErrLoadPublicKey
-	}
+// AsymmetricFromPEM 使用PEM编码的密钥字节串创建一个非对称加密的jwt验证器对象
+func AsymmetricFromPEM(method string, keybytes []byte) (*Asymmetric, error) {
 	if utils.IsEs(method) {
 		key, err := jwt.ParseECPublicKeyFromPEM(keybytes)
 		if err != nil {
@@ -60,6 +56,15 @@ func AsymmetricFromPEM(method string, keyPath string) (*Asymmetric, error) {
 	} else {
 		return nil, ErrUnexpectedAlgo
 	}
+}
+
+// AsymmetricFromPEMFile 从路径上读取密钥文件创建一个Verifier对象
+func AsymmetricFromPEMFile(method string, keyPath string) (*Asymmetric, error) {
+	keybytes, err := utils.LoadData(keyPath)
+	if err != nil {
+		return nil, ErrLoadPublicKey
+	}
+	return AsymmetricFromPEM(method, keybytes)
 }
 
 // Verify 用Verifier对象验签

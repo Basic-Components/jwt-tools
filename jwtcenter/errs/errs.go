@@ -13,3 +13,6 @@ var ParseClaimsToJsonError error = errors.New("Couldn't parse claims JSON")
 var SignTokenError error = errors.New("Error signing token")
 var TokenInvalidError error = errors.New("Token is invalid")
 var VerifyTokenError error = errors.New("Verify Token error")
+
+// ErrConfigParams 配置参数错误
+var ErrConfigParams = errors.New("config params error")

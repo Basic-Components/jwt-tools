@@ -1,14 +1,21 @@
-# jwtrpc
-jwt签名器,封装jwt,同时也提供grpc服务
+# jwttools
 
+jwt工具集合,主要是对jwt-go进行封装,以提供更加好用的接口
 
 ## 使用方法:
 
-### 服务端
+这个项目可以作为包用,也可以起一个grpc服务作为签名中心配合sdk使用.
 
+### grpc服务作为签名中心
+
+### 当做包使用
+
+
+
+### 服务端
 ```bash
-go get github.com/Basic-Components/jwtrpc
-go build github.com/Basic-Components/jwtrpc/server
+go get github.com/Basic-Components/jwttools
+go build github.com/Basic-Components/jwttools/jwtcenter
 ```
 
 ```bash
@@ -23,10 +30,10 @@ Usage of bin/darwin-amd64/jwtrpc:
   -m, --sign_method string        指定签名方法
 ```
 
-## 客户端
+## sdk
 
 ```bash
-go get -u -v  github.com/Basic-Components/jwtrpc
+go get -u -v  github.com/Basic-Components/jwtcentersdk
 ```
 
 ```golang
@@ -54,4 +61,3 @@ import (
 ...
 ```
 
-### 当做

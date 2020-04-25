@@ -47,12 +47,8 @@ func AsymmetricNew(method string, key PrivateKey) (*Asymmetric, error) {
 	return signer, nil
 }
 
-// AsymmetricFromPEM 从路径上读取PEM密钥文件创建一个非对称加密签名器对象
-func AsymmetricFromPEM(method string, keyPath string) (*Asymmetric, error) {
-	keybytes, err := utils.LoadData(keyPath)
-	if err != nil {
-		return nil, ErrLoadPrivateKey
-	}
+// AsymmetricFromPEM 使用PEM编码的密钥字节串创建一个非对称加密签名器对象
+func AsymmetricFromPEM(method string, keybytes []byte) (*Asymmetric, error) {
 	if utils.IsEs(method) {
 		key, err := jwt.ParseECPrivateKeyFromPEM(keybytes)
 		if err != nil {
@@ -70,6 +66,15 @@ func AsymmetricFromPEM(method string, keyPath string) (*Asymmetric, error) {
 	}
 }
 
+// AsymmetricFromPEMFile 从路径上读取PEM密钥文件创建一个非对称加密签名器对象
+func AsymmetricFromPEMFile(method string, keyPath string) (*Asymmetric, error) {
+	keybytes, err := utils.LoadData(keyPath)
+	if err != nil {
+		return nil, ErrLoadPrivateKey
+	}
+	return AsymmetricFromPEM(method, keybytes)
+}
+
 func (signer *Asymmetric) signany(claims jwt.MapClaims) (string, error) {
 	now := time.Now().Unix()
 	claims["jti"] = uuid.NewV4().String()
@@ -84,13 +89,13 @@ func (signer *Asymmetric) signany(claims jwt.MapClaims) (string, error) {
 
 // Sign 签名一个无过期的token
 func (signer *Asymmetric) Sign(payload map[string]interface{}, aud string, iss string) (string, error) {
-	claims := makclaims(payload, aud, iss, 0)
+	claims := makeclaims(payload, aud, iss, 0)
 	return signer.signany(claims)
 }
 
 // ExpSign 签名一个会过期的token
 func (signer *Asymmetric) ExpSign(payload map[string]interface{}, aud string, iss string, exp int64) (string, error) {
-	claims := makclaims(payload, aud, iss, exp)
+	claims := makeclaims(payload, aud, iss, exp)
 	return signer.signany(claims)
 }
 
