@@ -8,13 +8,13 @@ service JwtService {
     rpc VerifyJSON (VerifyRequest) returns (VerifyJSONResponse){}
 }
 enum Algo {
-    HASH = 0;
-    RSA = 1;
+    HS256 = 0;
+    RS256 = 1;
 }
 
 message SignJSONRequest {
     Algo algo = 1;
-    string payload = 2;
+    bytes payload = 2;
     string aud = 3;
     string iss= 4; 
     int64 exp = 5;
@@ -40,5 +40,5 @@ message SignResponse {
 
 message VerifyJSONResponse {
     StatusData status = 1;
-    string payload = 2;
+    bytes payload = 2;
 }

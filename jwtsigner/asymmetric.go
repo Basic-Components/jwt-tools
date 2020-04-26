@@ -6,7 +6,6 @@ import (
 	"time"
 
 	utils "github.com/Basic-Components/jwttools/utils"
-
 	jwt "github.com/dgrijalva/jwt-go"
 
 	uuid "github.com/satori/go.uuid"
@@ -23,19 +22,9 @@ type Asymmetric struct {
 	alg jwt.SigningMethod
 }
 
-// AsymmetricMethods 非对称加密支持的算法范围
-var AsymmetricMethods = map[string]bool{
-	"RS256": true,
-	"RS384": true,
-	"RS512": true,
-	"ES256": true,
-	"ES384": true,
-	"ES512": true,
-}
-
 // AsymmetricNew 创建一个非对称加密签名器对象
 func AsymmetricNew(method string, key PrivateKey) (*Asymmetric, error) {
-	_, ok := AsymmetricMethods[method]
+	_, ok := utils.AsymmetricMethods[method]
 	if !ok {
 		return nil, ErrUnexpectedAlgo
 	}
@@ -80,11 +69,12 @@ func (signer *Asymmetric) signany(claims jwt.MapClaims) (string, error) {
 	claims["jti"] = uuid.NewV4().String()
 	claims["iat"] = now
 	token := jwt.NewWithClaims(signer.alg, claims)
-	if out, err := token.SignedString(signer.key); err == nil {
-		return out, nil
+	out, err := token.SignedString(signer.key)
+	if err != nil {
+		return "", err
+		//return "",
 	}
-	return "", ErrSignToken
-
+	return out, nil
 }
 
 // Sign 签名一个无过期的token
@@ -101,20 +91,20 @@ func (signer *Asymmetric) ExpSign(payload map[string]interface{}, aud string, is
 
 // SignJSON 为json签名一个无过期的token
 func (signer *Asymmetric) SignJSON(jsonpayload []byte, aud string, iss string) (string, error) {
-	var payload map[string]interface{}
-	err := json.Unmarshal(jsonpayload, payload)
+	payload := map[string]interface{}{}
+	err := json.Unmarshal(jsonpayload, &payload)
 	if err != nil {
-		return "", ErrParseClaimsToJSON
+		return "", err
 	}
 	return signer.Sign(payload, aud, iss)
 }
 
 // ExpSignJSON 为json签名一个无过期的token
 func (signer *Asymmetric) ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error) {
-	var payload map[string]interface{}
-	err := json.Unmarshal(jsonpayload, payload)
+	payload := map[string]interface{}{}
+	err := json.Unmarshal(jsonpayload, &payload)
 	if err != nil {
-		return "", ErrParseClaimsToJSON
+		return "", err
 	}
 	return signer.ExpSign(payload, aud, iss, exp)
 }

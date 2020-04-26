@@ -14,19 +14,9 @@ type Asymmetric struct {
 	alg jwt.SigningMethod
 }
 
-// AsymmetricMethods 非对称加密支持的算法范围
-var AsymmetricMethods = map[string]bool{
-	"RS256": true,
-	"RS384": true,
-	"RS512": true,
-	"ES256": true,
-	"ES384": true,
-	"ES512": true,
-}
-
 // asymmetricNew 创建一个非对称加密jwt的验证器对象
 func asymmetricNew(method string, key interface{}) (*Asymmetric, error) {
-	_, ok := AsymmetricMethods[method]
+	_, ok := utils.AsymmetricMethods[method]
 	if !ok {
 		return nil, ErrUnexpectedAlgo
 	}

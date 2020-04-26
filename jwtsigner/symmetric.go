@@ -5,6 +5,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 
+	utils "github.com/Basic-Components/jwttools/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -14,16 +15,9 @@ type Symmetric struct {
 	alg jwt.SigningMethod
 }
 
-// SymmetricMethods 对称加密支持的算法范围
-var SymmetricMethods = map[string]bool{
-	"HS256": true,
-	"HS384": true,
-	"HS512": true,
-}
-
 // SymmetricNew 创建一个非对称加密签名器对象
 func SymmetricNew(method string, key string) (*Symmetric, error) {
-	_, ok := SymmetricMethods[method]
+	_, ok := utils.SymmetricMethods[method]
 	if !ok {
 		return nil, ErrUnexpectedAlgo
 	}
