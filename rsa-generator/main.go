@@ -1,6 +1,6 @@
-package main //import "github.com/Basic-Components/jwt-tools/rsa-generator"
+package main //import "github.com/Basic-Components/jwttools/rsa-generator"
 import (
-	"github.com/Basic-Components/jwt-tools/rsa-generator/keygen"
+	"github.com/Basic-Components/jwttools/rsa-generator/keygen"
 )
 
 func main() {

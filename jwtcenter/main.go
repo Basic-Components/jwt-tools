@@ -1,4 +1,4 @@
-package main //import "github.com/Basic-Components/jwt-tools/jwtcenter"
+package main //import "github.com/Basic-Components/jwttools/jwtcenter"
 
 import (
 	context "context"
@@ -6,11 +6,11 @@ import (
 
 	"net"
 
-	pb "github.com/Basic-Components/jwt-tools/jwtcenter/jwtrpcdeclare"
-	log "github.com/Basic-Components/jwt-tools/jwtcenter/logger"
-	script "github.com/Basic-Components/jwt-tools/jwtcenter/script"
-	"github.com/Basic-Components/jwt-tools/jwtsigner"
-	"github.com/Basic-Components/jwt-tools/jwtverifier"
+	pb "github.com/Basic-Components/jwttools/jwtcenter/jwtrpcdeclare"
+	log "github.com/Basic-Components/jwttools/jwtcenter/logger"
+	script "github.com/Basic-Components/jwttools/jwtcenter/script"
+	"github.com/Basic-Components/jwttools/jwtsigner"
+	"github.com/Basic-Components/jwttools/jwtverifier"
 	grpc "google.golang.org/grpc"
 )
 

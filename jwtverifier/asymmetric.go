@@ -3,7 +3,7 @@ package jwtverifier
 import (
 	"regexp"
 
-	utils "github.com/Basic-Components/jwt-tools/utils"
+	utils "github.com/Basic-Components/jwttools/utils"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	pb "github.com/Basic-Components/jwt-tools/jwtcenter/jwtrpcdeclare"
+	pb "github.com/Basic-Components/jwttools/jwtcenter/jwtrpcdeclare"
 
 	grpc "google.golang.org/grpc"
 )

@@ -11,7 +11,7 @@ var ErrUnexpectedAlgo = errors.New("unknown algo type key")
 var ErrLoadPrivateKey = errors.New("couldn't read private key")
 
 // ErrParseClaimsToJSON 无法加载JSON
-var ErrParseClaimsToJSON = errors.New("Couldn't parse claims JSON")
+var ErrParseClaimsToJSON = errors.New("couldn't parse claims JSON")
 
 // ErrSignToken 签名错误
 var ErrSignToken = errors.New("Error signing token")

@@ -1,7 +1,6 @@
-module github.com/Basic-Components/jwt-tools
+module github.com/Basic-Components/jwttools
 
 require (
-	github.com/Basic-Components/jwtrpc v1.0.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/golang/protobuf v1.3.1
 	github.com/json-iterator/go v1.1.9

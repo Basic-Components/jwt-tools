@@ -40,10 +40,12 @@ func (signer *Symmetric) signany(claims jwt.MapClaims) (string, error) {
 	claims["jti"] = uuid.NewV4().String()
 	claims["iat"] = now
 	token := jwt.NewWithClaims(signer.alg, claims)
-	if out, err := token.SignedString(signer.key); err == nil {
-		return out, nil
+	out, err := token.SignedString([]byte(signer.key))
+	if err != nil {
+		return "", err
 	}
-	return "", ErrSignToken
+	return out, nil
+	//return "", ErrSignToken
 }
 
 // Sign 签名一个无过期的token
@@ -60,20 +62,20 @@ func (signer *Symmetric) ExpSign(payload map[string]interface{}, aud string, iss
 
 // SignJSON 为json签名一个无过期的token
 func (signer *Symmetric) SignJSON(jsonpayload []byte, aud string, iss string) (string, error) {
-	var payload map[string]interface{}
-	err := json.Unmarshal(jsonpayload, payload)
+	payload := map[string]interface{}{}
+	err := json.Unmarshal(jsonpayload, &payload)
 	if err != nil {
-		return "", ErrParseClaimsToJSON
+		return "", err //ErrParseClaimsToJSON
 	}
 	return signer.Sign(payload, aud, iss)
 }
 
 // ExpSignJSON 为json签名一个无过期的token
 func (signer *Symmetric) ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error) {
-	var payload map[string]interface{}
-	err := json.Unmarshal(jsonpayload, payload)
+	payload := map[string]interface{}{}
+	err := json.Unmarshal(jsonpayload, &payload)
 	if err != nil {
-		return "", ErrParseClaimsToJSON
+		return "", err //ErrParseClaimsToJSON
 	}
 	return signer.ExpSign(payload, aud, iss, exp)
 }

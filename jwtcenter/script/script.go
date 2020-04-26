@@ -1,9 +1,9 @@
 package script
 
 import (
-	"github.com/Basic-Components/jwt-tools/jwtcenter/errs"
+	"github.com/Basic-Components/jwttools/jwtcenter/errs"
 
-	log "github.com/Basic-Components/jwt-tools/jwtcenter/logger"
+	log "github.com/Basic-Components/jwttools/jwtcenter/logger"
 	jsoniter "github.com/json-iterator/go"
 )
 
