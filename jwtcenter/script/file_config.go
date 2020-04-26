@@ -24,7 +24,7 @@ func SetFileConfig(fileName string, filePaths []string) (map[string]interface{},
 // InitFileConfig 从默认的配置文件位置读取配置
 func InitFileConfig() (map[string]interface{}, error) {
 	fileName := "config"
-	filePaths := []string{"/etc/compontents_manager/", "$HOME/.compontents_manager", "."}
+	filePaths := []string{"/etc/jwtcenter/", "$HOME/.jwtcenter", "."}
 	fileConfig, err := SetFileConfig(fileName, filePaths)
 	return fileConfig, err
 }

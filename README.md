@@ -31,20 +31,22 @@ import (
 func main(){
 	signer, err := jwtsigner.AsymmetricFromPEMFile("RS256", "./autogen_rsa.pem")
 	if err != nil {
-		
+		fmt.Printf("err: %v", err)
 		return
 	}
 	jwtverifier, err := jwtverifier.AsymmetricFromPEMFile("RS256", "./autogen_rsa_pub.pem")
 	if err != nil {
+		fmt.Printf("err: %v", err)
 		return
 	}
 	got, err := signer.SignJSONString(`{"a":1}`, "1", "a")
 	if err != nil {
-		
+		fmt.Printf("err: %v", err)
 		return
 	}
 	claims, err := jwtverifier.Verify(got)
 	if err != nil {
+		fmt.Printf("err: %v", err)
 		return
 	}
 
@@ -57,57 +59,68 @@ func main(){
 
 ```
 
-
 ### grpc服务作为签名中心
 
+该项目的签名中心服务使用grpc作为协议,其接口定义在`schema`目录中.注意目前只实现了hs256和rs256的签名验签功能.
 
-该项目的签名中心服务使用grpc作为协议,
+如果要本地安装可以使用
 
 ```bash
-go get github.com/Basic-Components/jwttools
+go get github.com/Basic-Components/jwttools/jwtcenter
 go build github.com/Basic-Components/jwttools/jwtcenter
 ```
+
+其启动参数为
 
 ```bash
 Usage of bin/darwin-amd64/jwtrpc:
   -a, --address string            要启动的服务器地址
   -c, --config string             配置文件位置
-  -g, --genkey                    创建rsa公私钥对
-  -i, --iss string                签名者
-  -l, --loglevel string           创建rsa公私钥对 (default "WARN")
-  -r, --private_key_path string   指定私钥位置
-  -u, --public_key_path string    指定公钥位置
-  -m, --sign_method string        指定签名方法
+  -k, --hash_key string           hash签名使用的盐
+  -l, --loglevel string           log的等级
+  -n, --name string               服务名称
+  -r, --private_key_path string   签名使用的私钥地址
+  -u, --public_key_path string    验签使用的公钥地址
 ```
+
+也可以通过设置环境变量和设置配置文件来设置配置.默认的配置文件未知在`"/etc/jwtcenter/", "$HOME/.jwtcenter", "."`.
+
+我们也可以使用docker来启动,镜像为`hsz1273327/jwtcenter`
 
 ## sdk
 
+调用配置中心除了可以自己封装外也可以使用sdk,这个sdk封装了对象`RemoteCenter`实现了签名器接口`Signer`和验证器接口`Verifier`,其初始化方法是使用函数`New`
+
 ```bash
-go get -u -v  github.com/Basic-Components/jwtcentersdk
+go get -u -v  github.com/Basic-Components/jwttools/jwtcentersdk
 ```
 
 ```golang
+package main
 import (
 	"fmt"
 
-	jwtclient "github.com/Basic-Components/jwtrpc/jwtclient"
+	jwtsdk "github.com/Basic-Components/jwttools/jwtcentersdk"
 )
 
-...
-    client := jwtclient.New("localhost:5000")
+func main(){
+	jwtcenter := jwtsdk.New("localhost:5000","RS256", time.Second)
 	claims := map[string]interface{}{"IP": "127.0.0.1", "name": "S124"}
-	token, err := client.GetToken(claims)
+	token, err := jwtcenter.Sign(claims,"1", "a")
 	if err != nil {
 		fmt.Printf("err: %v", err)
 		return
 	}
 	fmt.Printf("token: %v", token)
-	gotclaims, err := client.VerifyToken(token)
+	gotclaims, err := client.Verify(token)
 	if err != nil {
 		fmt.Printf("got claims error: %v", err)
 		return
 	}
     fmt.Printf("claims: %v", gotclaims)
-...
+}
 ```
 
+## todo
+
+后续会封装python版本sdk和js版本sdk
