@@ -64,6 +64,13 @@ func (verifier *Asymmetric) Verify(tokenstring string) (map[string]interface{}, 
 	token, err := jwt.Parse(
 		string(tokData),
 		func(t *jwt.Token) (interface{}, error) {
+			// if utils.IsEs(verifier.alg.Alg()) {
+			// 	return verifier.key.(*ecdsa.PublicKey), nil
+			// }
+			// if utils.IsRs(verifier.alg.Alg()) {
+			// 	return verifier.key.(*rsa.PublicKey), nil
+			// }
+			// return nil, ErrUnexpectedAlgo
 			return verifier.key, nil
 		})
 	if err != nil {

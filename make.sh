@@ -29,7 +29,7 @@ Darwin)
 esac
 
 cmd="mac"
-name="jwtrpc"
+name="jwtcenter"
 if test $# -eq 0; then
     cmd="mac"
 elif test $# -eq 1; then
@@ -44,7 +44,7 @@ fi
 
 if ! test -d $ASSETS; then
     mkdir $ASSETS
-    protoc -I schema schema/jwtrpcdeclare.proto --go_out=plugins=grpc:jwtrpcdeclare
+    protoc -I=schema --go_out=plugins=grpc:jwtcenter/jwtrpcdeclare --go_out=plugins=grpc:jwtcentersdk/jwtrpcdeclare --go_opt=paths=source_relative jwtrpcdeclare.proto
 fi
 
 case $cmd in
@@ -60,10 +60,10 @@ all)
             fi
             case $goos in
             windows)
-                go build -o $target/$name.exe server/server.go
+                go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
                 ;;
             *)
-                go build -o $target/$name server/server.go
+                go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
                 ;;
             esac
         done
@@ -76,7 +76,7 @@ win32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name.exe server/server.go
+    go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
     ;;
 win64)
     export GOARCH="amd64"
@@ -85,7 +85,7 @@ win64)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name.exe server/server.go
+    go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
     ;;
 mac)
     export GOARCH="amd64"
@@ -94,7 +94,7 @@ mac)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
     ;;
 mac32)
     export GOARCH="386"
@@ -103,7 +103,7 @@ mac32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
     ;;
 linux32)
     export GOARCH="386"
@@ -112,7 +112,7 @@ linux32)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
     ;;
 linux64)
     export GOARCH="amd64"
@@ -121,7 +121,7 @@ linux64)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
     ;;
 linuxarm)
     export GOARCH="arm"
@@ -130,7 +130,7 @@ linuxarm)
     if ! test -d $target; then
         mkdir $target
     fi
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
     ;;
 *)
     echo "unknown cmd $cmd"

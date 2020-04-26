@@ -5,28 +5,30 @@ import (
 	"errors"
 	"time"
 
+	errs "github.com/Basic-Components/jwttools/jwtcenter/errs"
 	pb "github.com/Basic-Components/jwttools/jwtcenter/jwtrpcdeclare"
+	utils "github.com/Basic-Components/jwttools/utils"
 	jsoniter "github.com/json-iterator/go"
 	grpc "google.golang.org/grpc"
 )
 
-// Client jwt的客户端类型
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+// RemoteCenter jwt的客户端类型
 type RemoteCenter struct {
 	Algo    pb.Algo
 	Address string
-	Timeout int
+	Timeout time.Duration
 }
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
 // New 创建客户端对象
-func New(address string, algo string, timeout int) (*RemoteCenter, error) {
+func New(address string, algo string, timeout time.Duration) (*RemoteCenter, error) {
 	rc := new(RemoteCenter)
 	rc.Address = address
 	rc.Timeout = timeout
-	_, ok := CenterSupportedMethods[algo]
+	_, ok := utils.CenterSupportedMethods[algo]
 	if !ok {
-		return rc, ErrAlgoType
+		return rc, errs.ErrAlgoType
 	}
 	switch algo {
 	case "RS256":
@@ -37,7 +39,7 @@ func New(address string, algo string, timeout int) (*RemoteCenter, error) {
 	return rc, nil
 }
 
-// 为json签名一个不会过期的token
+// SignJSON 为json签名一个无过期的token
 func (client *RemoteCenter) SignJSON(jsonpayload []byte, aud string, iss string) (string, error) {
 	conn, err := grpc.Dial(client.Address, grpc.WithInsecure())
 	if err != nil {
@@ -50,9 +52,9 @@ func (client *RemoteCenter) SignJSON(jsonpayload []byte, aud string, iss string)
 	defer cancel()
 	rs, err := c.SignJSON(ctx, &pb.SignJSONRequest{
 		Algo:    client.Algo,
-		payload: jsonpayload,
-		aud:     aud,
-		iss:     iss,
+		Payload: jsonpayload,
+		Aud:     aud,
+		Iss:     iss,
 	})
 	if err != nil {
 		return "", err
@@ -63,7 +65,7 @@ func (client *RemoteCenter) SignJSON(jsonpayload []byte, aud string, iss string)
 	return rs.Token, nil
 }
 
-// 为json签名一个会过期的token
+// ExpSignJSON 为json签名一个会过期的token
 func (client *RemoteCenter) ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error) {
 	conn, err := grpc.Dial(client.Address, grpc.WithInsecure())
 	if err != nil {
@@ -76,10 +78,10 @@ func (client *RemoteCenter) ExpSignJSON(jsonpayload []byte, aud string, iss stri
 	defer cancel()
 	rs, err := c.SignJSON(ctx, &pb.SignJSONRequest{
 		Algo:    client.Algo,
-		payload: jsonpayload,
-		aud:     aud,
-		iss:     iss,
-		exp:     exp,
+		Payload: jsonpayload,
+		Aud:     aud,
+		Iss:     iss,
+		Exp:     exp,
 	})
 	if err != nil {
 		return "", err
@@ -90,6 +92,7 @@ func (client *RemoteCenter) ExpSignJSON(jsonpayload []byte, aud string, iss stri
 	return rs.Token, nil
 }
 
+// SignJSONString 为json字符串签名一个无过期的token
 func (client *RemoteCenter) SignJSONString(jsonstringpayload string, aud string, iss string) (string, error) {
 	jsonpayload := []byte(jsonstringpayload)
 	return client.SignJSON(jsonpayload, aud, iss)
@@ -101,6 +104,7 @@ func (client *RemoteCenter) ExpSignJSONString(jsonstringpayload string, aud stri
 	return client.ExpSignJSON(jsonpayload, aud, iss, exp)
 }
 
+// Sign 签名一个无过期的token
 func (client *RemoteCenter) Sign(payload map[string]interface{}, aud string, iss string) (string, error) {
 	jsonpayload, err := json.Marshal(payload)
 	if err != nil {
@@ -119,9 +123,9 @@ func (client *RemoteCenter) ExpSign(payload map[string]interface{}, aud string, 
 }
 
 // Verify 验证签名
-func (client *Client) Verify(token string) (map[string]interface{}, error) {
+func (client *RemoteCenter) Verify(token string) (map[string]interface{}, error) {
+	result := map[string]interface{}{}
 	conn, err := grpc.Dial(client.Address, grpc.WithInsecure())
-	var result map[string]interface{}{}
 	if err != nil {
 		return result, err
 	}
@@ -130,7 +134,7 @@ func (client *Client) Verify(token string) (map[string]interface{}, error) {
 	// 设置请求上下文的过期时间
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	rs, err := c.VerifyJSON(ctx, &pb.VerifyRequest{Tokendata: token})
+	rs, err := c.VerifyJSON(ctx, &pb.VerifyRequest{Algo: client.Algo, Token: token})
 	if err != nil {
 		return result, err
 	}

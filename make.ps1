@@ -7,7 +7,7 @@ $env:GOPROXY="https://goproxy.io"
 
 
 $cmd = "win64"
-$name = "jwtrpc"
+$name = "jwtcenter"
 if ($args.Count -eq 0){
     $cmd = "win64"
 }elseif ($args.Count -eq 1){
@@ -22,7 +22,7 @@ if ($args.Count -eq 0){
  
 if (!(Test-Path $ASSETS)) {
     mkdir $ASSETS
-    protoc -I schema schema/jwtrpcdeclare.proto --go_out=plugins=grpc:jwtrpcdeclare
+    protoc -I=schema --go_out=plugins=grpc:jwtcenter/jwtrpcdeclare --go_out=plugins=grpc:jwtcentersdk/jwtrpcdeclare --go_opt=paths=source_relative jwtrpcdeclare.proto
 } 
 
 if ($cmd -eq "all"){
@@ -33,9 +33,9 @@ if ($cmd -eq "all"){
                 mkdir $target
             }
             if ($env:GOOS -eq "windows"){
-                go build -o $target/$name.exe server/server.go
+                go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
             }else {
-                go build -o $target/$name server/server.go
+                go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
             }
             
         }
@@ -47,7 +47,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name.exe
+    go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
 }elseif ($cmd -eq "win64") {
     $env:GOARCH="amd64"
     $env:GOOS="windows"
@@ -55,7 +55,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name.exe server/server.go
+    go build -ldflags "-s -w" -o $target/$name.exe jwtcenter/main.go
 }elseif ($cmd -eq "mac") {
     $env:GOARCH="amd64"
     $env:GOOS="darwin"
@@ -63,8 +63,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/server.go
-    
+    go build -ldflags "-s -w" -o $target/$name  jwtcenter/main.go
 }elseif ($cmd -eq "mac32") {
     $env:GOARCH="386"
     $env:GOOS="darwin"
@@ -72,7 +71,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
 }elseif ($cmd -eq "linux32") {
     $env:GOARCH="386"
     $env:GOOS="linux"
@@ -80,7 +79,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
 }elseif ($cmd -eq "linux64") {
     $env:GOARCH="amd64"
     $env:GOOS="linux"
@@ -88,7 +87,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
 }elseif ($cmd -eq "linuxarm") {
     $env:GOARCH="arm"
     $env:GOOS="linux"
@@ -96,7 +95,7 @@ if ($cmd -eq "all"){
     if (!(Test-Path $target)){
         mkdir $target
     }
-    go build -o $target/$name server/server.go
+    go build -ldflags "-s -w" -o $target/$name jwtcenter/main.go
 }else{
     echo "unknown cmd $cmd"
 }

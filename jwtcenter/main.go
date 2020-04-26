@@ -6,13 +6,17 @@ import (
 
 	"net"
 
+	errs "github.com/Basic-Components/jwttools/jwtcenter/errs"
 	pb "github.com/Basic-Components/jwttools/jwtcenter/jwtrpcdeclare"
 	log "github.com/Basic-Components/jwttools/jwtcenter/logger"
 	script "github.com/Basic-Components/jwttools/jwtcenter/script"
 	"github.com/Basic-Components/jwttools/jwtsigner"
 	"github.com/Basic-Components/jwttools/jwtverifier"
+	jsoniter "github.com/json-iterator/go"
 	grpc "google.golang.org/grpc"
 )
+
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 type rpcservice struct {
 	AsymmetricSigner   *jwtsigner.Asymmetric
@@ -52,53 +56,159 @@ func (s *rpcservice) SignJSON(ctx context.Context, in *pb.SignJSONRequest) (*pb.
 		"in":     in,
 		"Method": "SignJSON",
 	}, "get request")
-	// result, err := s.signer.Sign(in.Jsondata)
-	// var status pb.StatusData
-	// if err != nil {
-	// 	status = pb.StatusData{
-	// 		Status: pb.StatusData_ERROR,
-	// 		Msg:    err.Error()}
-	// 	log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Sign"}, "send response")
-	// 	return &pb.SignResponse{
-	// 		Status: &status}, nil
-	// }
-	// status = pb.StatusData{
-	// 	Status: pb.StatusData_SUCCEED,
-	// 	Msg:    "success"}
-	// log.Debug(map[string]interface{}{"response": string(result), "Method": "Sign"}, "send response")
-	return &pb.SignResponse{
-		Status: &pb.StatusData{Status: pb.StatusData_SUCCEED},
-		Token:  "123"}, nil
-
+	var res *pb.SignResponse
+	switch in.Algo {
+	case pb.Algo_HS256:
+		{
+			if in.Exp < 0 {
+				status := pb.StatusData{
+					Status: pb.StatusData_ERROR,
+					Msg:    errs.ErrExpOutOfRange.Error()}
+				res = &pb.SignResponse{Status: &status}
+			} else {
+				if in.Exp > 0 {
+					token, err := s.SymmetricSigner.ExpSignJSON(in.Payload, in.Aud, in.Iss, in.Exp)
+					if err != nil {
+						status := pb.StatusData{
+							Status: pb.StatusData_ERROR,
+							Msg:    err.Error()}
+						res = &pb.SignResponse{Status: &status}
+					} else {
+						status := pb.StatusData{
+							Status: pb.StatusData_SUCCEED,
+						}
+						res = &pb.SignResponse{Status: &status, Token: token}
+					}
+				} else {
+					token, err := s.SymmetricSigner.SignJSON(in.Payload, in.Aud, in.Iss)
+					if err != nil {
+						status := pb.StatusData{
+							Status: pb.StatusData_ERROR,
+							Msg:    err.Error()}
+						res = &pb.SignResponse{Status: &status}
+					} else {
+						status := pb.StatusData{
+							Status: pb.StatusData_SUCCEED,
+						}
+						res = &pb.SignResponse{Status: &status, Token: token}
+					}
+				}
+			}
+		}
+	case pb.Algo_RS256:
+		{
+			if in.Exp < 0 {
+				status := pb.StatusData{
+					Status: pb.StatusData_ERROR,
+					Msg:    errs.ErrExpOutOfRange.Error()}
+				res = &pb.SignResponse{Status: &status}
+			} else {
+				if in.Exp > 0 {
+					token, err := s.AsymmetricSigner.ExpSignJSON(in.Payload, in.Aud, in.Iss, in.Exp)
+					if err != nil {
+						status := pb.StatusData{
+							Status: pb.StatusData_ERROR,
+							Msg:    err.Error()}
+						res = &pb.SignResponse{Status: &status}
+					} else {
+						status := pb.StatusData{
+							Status: pb.StatusData_SUCCEED,
+						}
+						res = &pb.SignResponse{Status: &status, Token: token}
+					}
+				} else {
+					token, err := s.AsymmetricSigner.SignJSON(in.Payload, in.Aud, in.Iss)
+					if err != nil {
+						status := pb.StatusData{
+							Status: pb.StatusData_ERROR,
+							Msg:    err.Error()}
+						res = &pb.SignResponse{Status: &status}
+					} else {
+						status := pb.StatusData{
+							Status: pb.StatusData_SUCCEED,
+						}
+						res = &pb.SignResponse{Status: &status, Token: token}
+					}
+				}
+			}
+		}
+	default:
+		{
+			status := pb.StatusData{
+				Status: pb.StatusData_ERROR,
+				Msg:    errs.ErrAlgoType.Error()}
+			res = &pb.SignResponse{Status: &status}
+		}
+	}
+	log.Debug(map[string]interface{}{
+		"return": res,
+		"Method": "SignJSON",
+	}, "response")
+	return res, nil
 }
 func (s *rpcservice) VerifyJSON(ctx context.Context, in *pb.VerifyRequest) (*pb.VerifyJSONResponse, error) {
 	log.Debug(map[string]interface{}{"in": in, "Method": "VerifyJSON"}, "get request")
-	// result, err := s.verifier.Verify(in.Tokendata)
-	// var status pb.StatusData
-	// if err != nil {
-	// 	status = pb.StatusData{
-	// 		Status: pb.StatusData_ERROR,
-	// 		Msg:    err.Error()}
-	// 	log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Verify"}, "send response")
-	// 	return &pb.VerifyResponse{
-	// 		Status: &status}, nil
-	// }
-	// status = pb.StatusData{
-	// 	Status: pb.StatusData_SUCCEED,
-	// 	Msg:    "success"}
-	// data, err := json.Marshal(result)
-	// if err != nil {
-	// 	status = pb.StatusData{
-	// 		Status: pb.StatusData_ERROR,
-	// 		Msg:    err.Error()}
-	// 	log.Debug(map[string]interface{}{"error": err.Error(), "Method": "Verify"}, "send response")
-	// 	return &pb.VerifyResponse{
-	// 		Status: &status}, nil
-	// }
-	// log.Debug(map[string]interface{}{"response": string(data), "Method": "Verify"}, "send response")
-	return &pb.VerifyJSONResponse{
-		Status:  &pb.StatusData{Status: pb.StatusData_SUCCEED},
-		Payload: `{"a":1}`}, nil
+	var res *pb.VerifyJSONResponse
+	switch in.Algo {
+	case pb.Algo_HS256:
+		{
+			payload, err := s.SymmetricVerifier.Verify(in.Token)
+			if err != nil {
+				status := pb.StatusData{
+					Status: pb.StatusData_ERROR,
+					Msg:    err.Error()}
+				res = &pb.VerifyJSONResponse{Status: &status}
+			} else {
+				payloadJSON, err := json.Marshal(payload)
+				if err != nil {
+					status := pb.StatusData{
+						Status: pb.StatusData_ERROR,
+						Msg:    err.Error()}
+					res = &pb.VerifyJSONResponse{Status: &status}
+				} else {
+					status := pb.StatusData{
+						Status: pb.StatusData_SUCCEED,
+					}
+					res = &pb.VerifyJSONResponse{Status: &status, Payload: payloadJSON}
+				}
+			}
+		}
+	case pb.Algo_RS256:
+		{
+			payload, err := s.AsymmetricVerifier.Verify(in.Token)
+			if err != nil {
+				status := pb.StatusData{
+					Status: pb.StatusData_ERROR,
+					Msg:    err.Error()}
+				res = &pb.VerifyJSONResponse{Status: &status}
+			} else {
+				payloadJSON, err := json.Marshal(payload)
+				if err != nil {
+					status := pb.StatusData{
+						Status: pb.StatusData_ERROR,
+						Msg:    err.Error()}
+					res = &pb.VerifyJSONResponse{Status: &status}
+				} else {
+					status := pb.StatusData{
+						Status: pb.StatusData_SUCCEED,
+					}
+					res = &pb.VerifyJSONResponse{Status: &status, Payload: payloadJSON}
+				}
+			}
+		}
+	default:
+		{
+			status := pb.StatusData{
+				Status: pb.StatusData_ERROR,
+				Msg:    errs.ErrAlgoType.Error()}
+			res = &pb.VerifyJSONResponse{Status: &status}
+		}
+	}
+	log.Debug(map[string]interface{}{
+		"return": res,
+		"Method": "VerifyJSON",
+	}, "response")
+	return res, nil
 }
 
 // Run 执行签名验签服务

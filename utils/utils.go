@@ -20,7 +20,7 @@ type Signer interface {
 	// SignJSON 为json签名一个无过期的token
 	SignJSON(jsonpayload []byte, aud string, iss string) (string, error)
 
-	// ExpSignJSON 为json签名一个无过期的token
+	// ExpSignJSON 为json签名一个会过期的token
 	ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error)
 
 	// SignJSONString 为json字符串签名一个无过期的token
