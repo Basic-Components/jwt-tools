@@ -6,13 +6,63 @@ jwt工具集合,主要是对jwt-go进行封装,以提供更加好用的接口
 
 这个项目可以作为包用,也可以起一个grpc服务作为签名中心配合sdk使用.
 
-### grpc服务作为签名中心
-
 ### 当做包使用
 
+在`utils`子模块中定义了签名器接口`Signer`和验证器接口`Verifier`.
+
+`jwtsigner`子模块中实现了对称签名`Symmetric`(使用hash)和非对称签名`Asymmetric`(使用rsa和ecdsa)的结构体,
+其中`Symmetric`使用函数`SymmetricNew`初始化;`Asymmetric`使用`AsymmetricNew`,`AsymmetricFromPEM`,`AsymmetricFromPEMFile`初始化.
+
+这两个结构体都实现了`Signer`接口.
+
+与`jwtsigner`子模块类似,`jwtverifier`子模块实现了对称签名校验器`Symmetric`(使用hash)和非对称签名校验器`Asymmetric`(使用rsa和ecdsa)的结构体.
+其中`Symmetric`使用函数`SymmetricNew`初始化;`Asymmetric`使用`AsymmetricNew`,`AsymmetricFromPEM`,`AsymmetricFromPEMFile`初始化.
+这两个结构体都实现了`Verifier`接口.
+
+> 一个例子
+
+```golang
+package main
+import (
+	"github.com/Basic-Components/jwttools/jwtsigner"
+	"github.com/Basic-Components/jwttools/jwtverifier"
+)
+
+func main(){
+	signer, err := jwtsigner.AsymmetricFromPEMFile("RS256", "./autogen_rsa.pem")
+	if err != nil {
+		
+		return
+	}
+	jwtverifier, err := jwtverifier.AsymmetricFromPEMFile("RS256", "./autogen_rsa_pub.pem")
+	if err != nil {
+		return
+	}
+	got, err := signer.SignJSONString(`{"a":1}`, "1", "a")
+	if err != nil {
+		
+		return
+	}
+	claims, err := jwtverifier.Verify(got)
+	if err != nil {
+		return
+	}
+
+	if int(claims["a"].(float64)) != 1 {
+		fmt.Println("wrong")
+		return
+	}
+	fmt.Println("ok")
+}
+
+```
 
 
-### 服务端
+### grpc服务作为签名中心
+
+
+该项目的签名中心服务使用grpc作为协议,
+
 ```bash
 go get github.com/Basic-Components/jwttools
 go build github.com/Basic-Components/jwttools/jwtcenter
