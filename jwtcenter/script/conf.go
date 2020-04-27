@@ -12,6 +12,9 @@ type ConfigType struct {
 	Hashkey        string `json:"HASH_KEY"`
 	ComponentName  string `json:"COMPONENT_NAME"`
 	LogLevel       string `json:"LOG_LEVEL"`
+	//RegistEtcdURLS string `json:"REGIST_ETCD_URLS"`
+	//RegistVersion  string `json:"REGIST_VERSION"`
+	//RegistAddress  string `json:"REGIST_ADDRESS"`
 }
 
 //DefaultConfig 默认配置
@@ -22,6 +25,9 @@ var DefaultConfig = map[string]interface{}{
 	"HASH_KEY":         "secret can not guess",
 	"COMPONENT_NAME":   "jwt-center",
 	"LOG_LEVEL":        "DEBUG",
+	"REGIST_ETCD_URLS": "",
+	"REGIST_VERSION":   "",
+	"REGIST_ADDRESS":   "",
 }
 
 //Schema 默认的配置样式
@@ -36,7 +42,8 @@ const Schema = `{
         "PUBLIC_KEY_PATH",
         "HASH_KEY",
         "COMPONENT_NAME",
-        "LOG_LEVEL"
+		"LOG_LEVEL",
+		"REGIST_ETCD_URLS",
     ],
     "properties": {
         "ADDRESS": {"type": "string"},
@@ -44,7 +51,10 @@ const Schema = `{
         "PUBLIC_KEY_PATH": { "type": "string" },
         "LOG_LEVEL": { "type": "string", "enum": ["DEBUG", "INFO", "WARN", "ERROR"] },
         "HASH_KEY": { "type": "string" },
-        "COMPONENT_NAME": { "type": "string" }
+		"COMPONENT_NAME": { "type": "string" },
+		"REGIST_ETCD_URLS": { "type": "string" },
+		"REGIST_VERSION': { "type": "string" },
+		"REGIST_ADDRESS": { "type": "string" },
     }
 }`
 

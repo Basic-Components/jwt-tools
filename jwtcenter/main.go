@@ -12,7 +12,11 @@ import (
 	script "github.com/Basic-Components/jwttools/jwtcenter/script"
 	"github.com/Basic-Components/jwttools/jwtsigner"
 	"github.com/Basic-Components/jwttools/jwtverifier"
+
+	// etcd "github.com/etcd-io/etcd/clientv3"
 	jsoniter "github.com/json-iterator/go"
+	// registry "github.com/liyue201/grpc-lb/registry/etcd3"
+
 	grpc "google.golang.org/grpc"
 )
 
@@ -23,6 +27,8 @@ type rpcservice struct {
 	AsymmetricVerifier *jwtverifier.Asymmetric
 	SymmetricSigner    *jwtsigner.Symmetric
 	SymmetricVerifier  *jwtverifier.Symmetric
+	server             *grpc.Server
+	conf               script.ConfigType
 }
 
 // NewService 创建一个新的服务
@@ -48,6 +54,9 @@ func NewService(conf script.ConfigType) (*rpcservice, error) {
 	s.AsymmetricVerifier = asymmetricVerifier
 	s.SymmetricSigner = symmetricSigner
 	s.SymmetricVerifier = symmetricVerifier
+	server := grpc.NewServer()
+	s.server = server
+	s.conf = conf
 	return s, nil
 }
 
@@ -219,12 +228,61 @@ func (s *rpcservice) Run() {
 		return
 	}
 	log.Info(map[string]interface{}{"address": script.Config.Address}, "server started")
-	server := grpc.NewServer()
-	pb.RegisterJwtServiceServer(server, s)
-	if err := server.Serve(listener); err != nil {
+	pb.RegisterJwtServiceServer(s.server, s)
+	if err := s.server.Serve(listener); err != nil {
 		log.Logger.Fatalf("failed to serve: %v", err)
 		return
 	}
+}
+
+// Stop 关闭签名服务
+func (s *rpcservice) Stop() {
+	s.server.GracefulStop()
+}
+
+func (s *rpcservice) RunSerice() {
+	s.Run()
+	// if s.conf.EtcdURLS == "" {
+	// 	s.Run()
+	// } else {
+	// 	etcdConfg := etcd.Config{
+	// 		Endpoints: strings.Split(s.conf.RegistEtcdURLS, ","),
+	// 	}
+
+	// 	registrar, err := registry.NewRegistrar(
+	// 		registry.Option{
+	// 			EtcdConfig:     etcdConfg,
+	// 			RegistryDir:    registry.RegistryDir,
+	// 			ServiceName:    s.conf.ComponentName,
+	// 			ServiceVersion: s.conf.RegistVersion,
+	// 			NodeID:         uuid.NewV4().String(),
+	// 			NData: registry.NodeData{
+	// 				Addr: s.conf.RegistAddress,
+	// 			},
+	// 			Ttl: 10 * time.Second,
+	// 		})
+	// 	if err != nil {
+	// 		log.Error(map[string]interface{}{"error": err.Error()}, "registrar init error")
+	// 		return
+	// 	}
+	// 	wg := sync.WaitGroup{}
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		s.server.Run()
+	// 		wg.Done()
+	// 	}()
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		registrar.Register()
+	// 		wg.Done()
+	// 	}()
+	// 	signalChan := make(chan os.Signal, 1)
+	// 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+	// 	<-signalChan
+	// 	registrar.Unregister()
+	// 	s.server.Stop()
+	// 	wg.Wait()
+	// }
 }
 
 func main() {
@@ -240,5 +298,5 @@ func main() {
 		log.Error(map[string]interface{}{"error": err}, "service not inited")
 		os.Exit(1)
 	}
-	service.Run()
+	service.RunSerice()
 }

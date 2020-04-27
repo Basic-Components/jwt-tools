@@ -28,7 +28,9 @@ func TestAsymmetric_SignJSON(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remote, err := New("localhost:5000", tt.algo, time.Second)
+			addresses := []string{"localhost:5000", "localhost:5001"}
+			remote, err := NewWithLocalBalance(addresses, tt.algo, time.Second)
+			defer remote.Close()
 			if err != nil {
 				t.Errorf("remote init error = %v", err)
 				return
@@ -74,6 +76,7 @@ func TestSymmetric_SignJSONString(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			remote, err := New("localhost:5000", tt.algo, time.Second)
+			efer remote.Close()
 			if err != nil {
 				t.Errorf("remote init error = %v", err)
 				return

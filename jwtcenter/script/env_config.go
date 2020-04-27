@@ -15,6 +15,9 @@ func InitEnvConfig() (map[string]interface{}, error) {
 	EnvConfigViper.BindEnv("HASH_KEY")
 	EnvConfigViper.BindEnv("COMPONENT_NAME")
 	EnvConfigViper.BindEnv("LOG_LEVEL")
+	EnvConfigViper.BindEnv("REGIST_ETCD_URLS")
+	EnvConfigViper.BindEnv("REGIST_VERSION'")
+	EnvConfigViper.BindEnv("REGIST_ADDRESS")
 	err := EnvConfigViper.Unmarshal(&envConfig)
 	return envConfig, err
 }

@@ -16,6 +16,10 @@ func InitFlagConfig() (map[string]interface{}, error) {
 	publickeypath := pflag.StringP("public_key_path", "u", "", "验签使用的公钥地址")
 	hashkey := pflag.StringP("hash_key", "k", "", "hash签名使用的盐")
 	name := pflag.StringP("name", "n", "", "服务名称")
+	registetcdurls := pflag.StringP("regist_etcd_urls", "e", "", "服务注册的etcd地址")
+	registversion := pflag.StringP("regist_version", "v", "", "服务注册的指定服务版本")
+	registaddress := pflag.StringP("regist_address", "d", "", "服务注册指定服务地址")
+
 	confPath := pflag.StringP("config", "c", "", "配置文件位置")
 	pflag.Parse()
 	var flagConfig = map[string]interface{}{}
@@ -61,6 +65,15 @@ func InitFlagConfig() (map[string]interface{}, error) {
 	}
 	if *name != "" {
 		flagConfig["COMPONENT_NAME"] = *name
+	}
+	if *registetcdurls != "" {
+		flagConfig["REGIST_ETCD_URLS"] = *name
+	}
+	if *registversion != "" {
+		flagConfig["REGIST_VERSION"] = *name
+	}
+	if *registaddress != "" {
+		flagConfig["REGIST_ADDRESS"] = *name
 	}
 	return flagConfig, nil
 }
