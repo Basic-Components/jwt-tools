@@ -12,9 +12,9 @@ type ConfigType struct {
 	Hashkey        string `json:"HASH_KEY"`
 	ComponentName  string `json:"COMPONENT_NAME"`
 	LogLevel       string `json:"LOG_LEVEL"`
-	//RegistEtcdURLS string `json:"REGIST_ETCD_URLS"`
-	//RegistVersion  string `json:"REGIST_VERSION"`
-	//RegistAddress  string `json:"REGIST_ADDRESS"`
+	RegistEtcdURLS string `json:"REGIST_ETCD_URLS"`
+	RegistVersion  string `json:"REGIST_VERSION"`
+	RegistAddress  string `json:"REGIST_ADDRESS"`
 }
 
 //DefaultConfig 默认配置
@@ -53,8 +53,8 @@ const Schema = `{
         "HASH_KEY": { "type": "string" },
 		"COMPONENT_NAME": { "type": "string" },
 		"REGIST_ETCD_URLS": { "type": "string" },
-		"REGIST_VERSION': { "type": "string" },
-		"REGIST_ADDRESS": { "type": "string" },
+		"REGIST_VERSION": { "type": "string" },
+		"REGIST_ADDRESS": { "type": "string" }
     }
 }`
 
