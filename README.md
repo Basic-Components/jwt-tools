@@ -89,7 +89,7 @@ Usage of bin/darwin-amd64/jwtrpc:
 
 ## sdk
 
-调用配置中心除了可以自己封装外也可以使用sdk,这个sdk封装了对象`RemoteCenter`实现了签名器接口`Signer`和验证器接口`Verifier`,其初始化方法是使用函数`New`
+调用配置中心除了可以自己封装外也可以使用sdk,这个sdk封装了对象`RemoteCenter`实现了签名器接口`Signer`和验证器接口`Verifier`,其初始化方法是使用函数`New`来创建简单连接,也可以使用`NewWithLocalBalance`来做基于本地注册中心的负载均衡连接
 
 ```bash
 go get -u -v  github.com/Basic-Components/jwttools/jwtcentersdk
@@ -123,4 +123,5 @@ func main(){
 
 ## todo
 
-后续会封装python版本sdk和js版本sdk
+1. 后续会封装python版本sdk和js版本sdk
+2. 后续会加上使用etcdv3做服务发现和负载均衡的方法

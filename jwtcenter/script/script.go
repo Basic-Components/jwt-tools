@@ -48,13 +48,16 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	var configstruct ConfigType
+	configstruct := ConfigType{}
 	json.Unmarshal(ConfigJSON, &configstruct)
 	flag, result := VerifyConfig(configstruct)
 	if flag == true {
 		Config = configstruct
 		return nil
 	}
+	log.Logger.WithFields(map[string]interface{}{
+		"flag": flag,
+	}).Error("配置检验错误")
 	for _, err := range result.Errors() {
 		log.Logger.WithFields(map[string]interface{}{
 			"error": err,

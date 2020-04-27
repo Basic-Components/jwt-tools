@@ -1,6 +1,8 @@
 package script
 
 import (
+	"fmt"
+
 	"github.com/xeipuuv/gojsonschema"
 )
 
@@ -43,7 +45,7 @@ const Schema = `{
         "HASH_KEY",
         "COMPONENT_NAME",
 		"LOG_LEVEL",
-		"REGIST_ETCD_URLS",
+		"REGIST_ETCD_URLS"
     ],
     "properties": {
         "ADDRESS": {"type": "string"},
@@ -64,6 +66,7 @@ func VerifyConfig(conf ConfigType) (bool, *gojsonschema.Result) {
 	schemaLoader := gojsonschema.NewStringLoader(Schema)
 	result, err := gojsonschema.Validate(schemaLoader, configLoader)
 	if err != nil {
+		fmt.Println(err)
 		return false, result
 	}
 	if result.Valid() {
