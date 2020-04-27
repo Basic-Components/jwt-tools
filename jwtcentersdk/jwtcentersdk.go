@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	errs "github.com/Basic-Components/jwttools/jwtcenter/errs"
 	pb "github.com/Basic-Components/jwttools/jwtcenter/jwtrpcdeclare"
+	errs "github.com/Basic-Components/jwttools/jwtcentersdk/errs"
 	utils "github.com/Basic-Components/jwttools/utils"
 
 	// etcd3 "github.com/etcd-io/etcd/clientv3"
