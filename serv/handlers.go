@@ -5,20 +5,13 @@ import (
 
 	declare "github.com/Basic-Components/jwttools/jwtrpcdeclare"
 	"github.com/Basic-Components/jwttools/options"
-	"github.com/Basic-Components/jwttools/utils"
 	jsoniter "github.com/json-iterator/go"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func (s *Server) Algo(ctx context.Context, in *declare.AlgoRequest) (*declare.AlgoResponse, error) {
-	alg, err := utils.AlgoStrTOAlgoEnum(s.Algo_Type)
-	if err != nil {
-		return nil, err
-	}
-	return &declare.AlgoResponse{
-		Algo: alg,
-	}, nil
+func (s *Server) Meta(ctx context.Context, in *declare.MetaRequest) (*declare.MetaResponse, error) {
+	return s.signer.Meta(), nil
 }
 
 func (s *Server) Sign(ctx context.Context, in *declare.SignRequest) (*declare.SignResponse, error) {

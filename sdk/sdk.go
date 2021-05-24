@@ -227,13 +227,7 @@ func (c *SDK) NewConn() (*Conn, error) {
 	}
 	return conn, nil
 }
-
-//Algo 查看指向的服务使用的算法
-func (c *SDK) Algo() (declare.EncryptionAlgorithm, error) {
-	conn, err := c.GetConn()
-	if err != nil {
-		return declare.EncryptionAlgorithm_UNKNOWN, err
-	}
+func (c *SDK) queryCtx() (context.Context, context.CancelFunc) {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	if c.QueryTimeout > 0 {
@@ -242,8 +236,18 @@ func (c *SDK) Algo() (declare.EncryptionAlgorithm, error) {
 	} else {
 		ctx, cancel = context.WithCancel(context.Background())
 	}
+	return ctx, cancel
+}
+
+//Algo 查看指向的服务使用的算法
+func (c *SDK) Meta() (declare.EncryptionAlgorithm, error) {
+	conn, err := c.GetConn()
+	if err != nil {
+		return declare.EncryptionAlgorithm_UNKNOWN, err
+	}
+	ctx, cancel := c.queryCtx()
 	defer cancel()
-	res, err := conn.Algo(ctx, &declare.AlgoRequest{})
+	res, err := conn.Meta(ctx, &declare.MetaRequest{})
 	if err != nil {
 		return declare.EncryptionAlgorithm_UNKNOWN, err
 	}
@@ -256,14 +260,7 @@ func (c *SDK) Sign(payload []byte, opts ...options.SignOption) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var ctx context.Context
-	var cancel context.CancelFunc
-	if c.QueryTimeout > 0 {
-		timeout := time.Duration(c.QueryTimeout) * time.Millisecond
-		ctx, cancel = context.WithTimeout(context.Background(), timeout)
-	} else {
-		ctx, cancel = context.WithCancel(context.Background())
-	}
+	ctx, cancel := c.queryCtx()
 	defer cancel()
 	query := declare.SignRequest{
 		Payload: payload,
@@ -299,14 +296,7 @@ func (c *SDK) Verify(tokenstring string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	var ctx context.Context
-	var cancel context.CancelFunc
-	if c.QueryTimeout > 0 {
-		timeout := time.Duration(c.QueryTimeout) * time.Millisecond
-		ctx, cancel = context.WithTimeout(context.Background(), timeout)
-	} else {
-		ctx, cancel = context.WithCancel(context.Background())
-	}
+	ctx, cancel := c.queryCtx()
 	defer cancel()
 	res, err := conn.Verify(ctx, &declare.VerifyRequest{Token: tokenstring})
 	if err != nil {

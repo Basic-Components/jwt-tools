@@ -44,8 +44,19 @@ func SymmetricNew(algo declare.EncryptionAlgorithm, key string, opts ...options.
 	return s, nil
 }
 
-func (signer *Symmetric) Alg() string {
-	return signer.alg.Alg()
+func (signer *Symmetric) Meta() *declare.MetaResponse {
+	algo, err := utils.AlgoStrTOAlgoEnum(signer.alg.Alg())
+	if err != nil {
+		algo = declare.EncryptionAlgorithm_UNKNOWN
+	}
+	res := declare.MetaResponse{
+		Iss:                      signer.opts.Iss,
+		DefaultTTL:               int64(signer.opts.DefaultTTL),
+		DefaultEffectiveInterval: int64(signer.opts.DefaultEffectiveInterval),
+		JtiGen:                   signer.opts.JtiGen.String(),
+		Algo:                     algo,
+	}
+	return &res
 }
 
 func (signer *Symmetric) signany(claims jwt.MapClaims, opts ...options.SignOption) (string, error) {

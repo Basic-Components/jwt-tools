@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Basic-Components/jwttools/errs"
-	"github.com/Basic-Components/jwttools/jwtrpcdeclare"
+	declare "github.com/Basic-Components/jwttools/jwtrpcdeclare"
 	"github.com/Basic-Components/jwttools/machineid"
 	"github.com/Basic-Components/jwttools/options"
 	utils "github.com/Basic-Components/jwttools/utils"
@@ -27,7 +27,7 @@ type Asymmetric struct {
 }
 
 // AsymmetricNew 创建一个非对称加密签名器对象
-func AsymmetricNew(algo jwtrpcdeclare.EncryptionAlgorithm, key PrivateKey, opts ...options.SignerOption) (*Asymmetric, error) {
+func AsymmetricNew(algo declare.EncryptionAlgorithm, key PrivateKey, opts ...options.SignerOption) (*Asymmetric, error) {
 	s := new(Asymmetric)
 	if !utils.IsAsymmetric(algo) {
 		return nil, errs.ErrUnsupportAlgoType
@@ -51,7 +51,7 @@ func AsymmetricNew(algo jwtrpcdeclare.EncryptionAlgorithm, key PrivateKey, opts 
 }
 
 // AsymmetricFromPEM 使用PEM编码的密钥字节串创建一个非对称加密签名器对象
-func AsymmetricFromPEM(algo jwtrpcdeclare.EncryptionAlgorithm, keybytes []byte, opts ...options.SignerOption) (*Asymmetric, error) {
+func AsymmetricFromPEM(algo declare.EncryptionAlgorithm, keybytes []byte, opts ...options.SignerOption) (*Asymmetric, error) {
 	if utils.IsEs(algo) {
 		key, err := jwt.ParseECPrivateKeyFromPEM(keybytes)
 		if err != nil {
@@ -70,7 +70,7 @@ func AsymmetricFromPEM(algo jwtrpcdeclare.EncryptionAlgorithm, keybytes []byte, 
 }
 
 // AsymmetricFromPEMFile 从路径上读取PEM私钥文件创建一个非对称加密签名器对象
-func AsymmetricFromPEMFile(algo jwtrpcdeclare.EncryptionAlgorithm, keyPath string, opts ...options.SignerOption) (*Asymmetric, error) {
+func AsymmetricFromPEMFile(algo declare.EncryptionAlgorithm, keyPath string, opts ...options.SignerOption) (*Asymmetric, error) {
 	keybytes, err := utils.LoadData(keyPath)
 	if err != nil {
 		return nil, errs.ErrLoadPrivateKey
@@ -78,9 +78,21 @@ func AsymmetricFromPEMFile(algo jwtrpcdeclare.EncryptionAlgorithm, keyPath strin
 	return AsymmetricFromPEM(algo, keybytes, opts...)
 }
 
-func (signer *Asymmetric) Alg() string {
-	return signer.alg.Alg()
+func (signer *Asymmetric) Meta() *declare.MetaResponse {
+	algo, err := utils.AlgoStrTOAlgoEnum(signer.alg.Alg())
+	if err != nil {
+		algo = declare.EncryptionAlgorithm_UNKNOWN
+	}
+	res := declare.MetaResponse{
+		Iss:                      signer.opts.Iss,
+		DefaultTTL:               int64(signer.opts.DefaultTTL),
+		DefaultEffectiveInterval: int64(signer.opts.DefaultEffectiveInterval),
+		JtiGen:                   signer.opts.JtiGen.String(),
+		Algo:                     algo,
+	}
+	return &res
 }
+
 func (signer *Asymmetric) signany(claims jwt.MapClaims, opts ...options.SignOption) (string, error) {
 	if signer.opts.Iss != "" {
 		claims["iss"] = signer.opts.Iss

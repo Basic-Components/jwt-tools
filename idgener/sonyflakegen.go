@@ -37,3 +37,7 @@ func (g *SonyflakeGen) Next() (string, error) {
 	}
 	return strconv.FormatUint(id, 32), nil
 }
+
+func (g *SonyflakeGen) String() string {
+	return "sonyflake"
+}

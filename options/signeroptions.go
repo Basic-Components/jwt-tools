@@ -8,6 +8,7 @@ import (
 
 type IDGen interface {
 	Next() (string, error)
+	String() string
 }
 
 type SignerOptions struct {
