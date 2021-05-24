@@ -13,10 +13,6 @@ type CanSign interface {
 	Sign(payload []byte, opts ...options.SignOption) (string, error)
 }
 
-// PrivateKey 非对称加密的私钥
-type PrivateKey interface {
-	Sign(rand io.Reader, digest []byte, opts crypto.SignerOpts) ([]byte, error)
-}
 
 //CanVerify 验证器接口
 type CanVerify interface {
