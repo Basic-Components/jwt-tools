@@ -1,1 +1,0 @@
-protoc -I=schema --go_out=plugins=grpc:jwtcenter/jwtrpcdeclare --go_out=plugins=grpc:jwtcentersdk/jwtrpcdeclare --go_opt=paths=source_relative jwtrpcdeclare.proto

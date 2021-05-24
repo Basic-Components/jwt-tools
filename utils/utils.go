@@ -6,69 +6,92 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/Basic-Components/jwttools/errs"
+	declare "github.com/Basic-Components/jwttools/jwtrpcdeclare"
 )
 
-//Signer 签名器接口
-type Signer interface {
-
-	// Sign 签名一个无过期的token
-	Sign(payload map[string]interface{}, aud string, iss string) (string, error)
-
-	// ExpSign 签名一个会过期的token
-	ExpSign(payload map[string]interface{}, aud string, iss string, exp int64) (string, error)
-
-	// SignJSON 为json签名一个无过期的token
-	SignJSON(jsonpayload []byte, aud string, iss string) (string, error)
-
-	// ExpSignJSON 为json签名一个会过期的token
-	ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error)
-
-	// SignJSONString 为json字符串签名一个无过期的token
-	SignJSONString(jsonstringpayload string, aud string, iss string) (string, error)
-
-	// ExpSignJSONString 为json字符串签名一个会过期的token
-	ExpSignJSONString(jsonstringpayload string, aud string, iss string, exp int64) (string, error)
+//AlgoStrTOAlgoEnum 加密算法名转化为算法枚举值
+func AlgoStrTOAlgoEnum(methodstr string) (declare.EncryptionAlgorithm, error) {
+	switch strings.ToUpper(methodstr) {
+	case "RS256":
+		{
+			return declare.EncryptionAlgorithm_RS256, nil
+		}
+	case "RS384":
+		{
+			return declare.EncryptionAlgorithm_RS384, nil
+		}
+	case "RS512":
+		{
+			return declare.EncryptionAlgorithm_RS512, nil
+		}
+	case "ES384":
+		{
+			return declare.EncryptionAlgorithm_ES384, nil
+		}
+	case "ES512":
+		{
+			return declare.EncryptionAlgorithm_ES512, nil
+		}
+	case "HS256":
+		{
+			return declare.EncryptionAlgorithm_HS256, nil
+		}
+	case "HS384":
+		{
+			return declare.EncryptionAlgorithm_HS384, nil
+		}
+	case "HS512":
+		{
+			return declare.EncryptionAlgorithm_HS512, nil
+		}
+	default:
+		{
+			return 0, errs.ErrAlgoType
+		}
+	}
 }
 
-//Verifier 验证器接口
-type Verifier interface {
-
-	// Verify 用Verifier对象验签
-	Verify(tokenstring string) (map[string]interface{}, error)
+//IsAsymmetric 算法在非对称加密支持的算法范围
+func IsAsymmetric(method declare.EncryptionAlgorithm) bool {
+	if method == declare.EncryptionAlgorithm_RS256 || method == declare.EncryptionAlgorithm_RS384 || method == declare.EncryptionAlgorithm_RS512 || method == declare.EncryptionAlgorithm_ES256 || method == declare.EncryptionAlgorithm_ES384 || method == declare.EncryptionAlgorithm_ES512 {
+		return true
+	}
+	return false
 }
 
-// AsymmetricMethods 非对称加密支持的算法范围
-var AsymmetricMethods = map[string]bool{
-	"RS256": true,
-	"RS384": true,
-	"RS512": true,
-	"ES256": true,
-	"ES384": true,
-	"ES512": true,
-}
-
-// SymmetricMethods 对称加密支持的算法范围
-var SymmetricMethods = map[string]bool{
-	"HS256": true,
-	"HS384": true,
-	"HS512": true,
-}
-
-// AsymmetricMethods 非对称加密支持的算法范围
-var CenterSupportedMethods = map[string]bool{
-	"RS256": true,
-	"HS256": true,
+//IsSymmetric 算法在对称加密支持的算法范围
+func IsSymmetric(method declare.EncryptionAlgorithm) bool {
+	if method == declare.EncryptionAlgorithm_HS256 || method == declare.EncryptionAlgorithm_HS384 || method == declare.EncryptionAlgorithm_HS512 {
+		return true
+	}
+	return false
 }
 
 // IsEs 判断文件是不是ES方法加密
-func IsEs(method string) bool {
-	return strings.HasPrefix(method, "ES")
+func IsEs(method declare.EncryptionAlgorithm) bool {
+	if method == declare.EncryptionAlgorithm_ES256 || method == declare.EncryptionAlgorithm_ES384 || method == declare.EncryptionAlgorithm_ES512 {
+		return true
+	} else {
+		return false
+	}
 }
 
 // IsRs 判断文件是不是RS方法加密
-func IsRs(method string) bool {
-	return strings.HasPrefix(method, "RS") || strings.HasPrefix(method, "PS")
+func IsRs(method declare.EncryptionAlgorithm) bool {
+	if method == declare.EncryptionAlgorithm_RS256 || method == declare.EncryptionAlgorithm_RS384 || method == declare.EncryptionAlgorithm_RS512 {
+		return true
+	} else {
+		return false
+	}
 }
+
+// // AsymmetricMethods 非对称加密支持的算法范围
+// var CenterSupportedMethods = map[string]bool{
+// 	"RS256": true,
+// 	"HS256": true,
+// }
 
 // LoadData 读取并加载文件数据
 func LoadData(p string) ([]byte, error) {

@@ -3,12 +3,15 @@ package jwtsigner
 import (
 	"crypto"
 	"io"
+	"strings"
 	"time"
 
+	"github.com/Basic-Components/jwttools/errs"
+	"github.com/Basic-Components/jwttools/jwtrpcdeclare"
+	"github.com/Basic-Components/jwttools/machineid"
+	"github.com/Basic-Components/jwttools/options"
 	utils "github.com/Basic-Components/jwttools/utils"
 	jwt "github.com/dgrijalva/jwt-go"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 // PrivateKey 非对称加密的私钥
@@ -18,105 +21,127 @@ type PrivateKey interface {
 
 // Asymmetric 非对称加密签名器
 type Asymmetric struct {
-	key PrivateKey
-	alg jwt.SigningMethod
+	key  PrivateKey
+	alg  jwt.SigningMethod
+	opts *options.SignerOptions
 }
 
 // AsymmetricNew 创建一个非对称加密签名器对象
-func AsymmetricNew(method string, key PrivateKey) (*Asymmetric, error) {
-	_, ok := utils.AsymmetricMethods[method]
-	if !ok {
-		return nil, ErrUnexpectedAlgo
+func AsymmetricNew(algo jwtrpcdeclare.EncryptionAlgorithm, key PrivateKey, opts ...options.SignerOption) (*Asymmetric, error) {
+	s := new(Asymmetric)
+	if !utils.IsAsymmetric(algo) {
+		return nil, errs.ErrUnsupportAlgoType
 	}
-	alg := jwt.GetSigningMethod(method)
-	//var signer *Signer
-	signer := &Asymmetric{
-		key: key,
-		alg: alg}
-	return signer, nil
+	s.key = key
+	alg := jwt.GetSigningMethod(algo.String())
+	s.alg = alg
+	builder := strings.Builder{}
+	builder.Grow(len(machineid.MachineIDStr) + 1 + len(algo.String()))
+	builder.WriteString(machineid.MachineIDStr)
+	builder.WriteString("-")
+	builder.WriteString(algo.String())
+	s.opts = &options.SignerOptions{
+		Iss:    builder.String(),
+		JtiGen: options.DefaultSignerOptions.JtiGen,
+	}
+	for _, opt := range opts {
+		opt.Apply(s.opts)
+	}
+	return s, nil
 }
 
 // AsymmetricFromPEM 使用PEM编码的密钥字节串创建一个非对称加密签名器对象
-func AsymmetricFromPEM(method string, keybytes []byte) (*Asymmetric, error) {
-	if utils.IsEs(method) {
+func AsymmetricFromPEM(algo jwtrpcdeclare.EncryptionAlgorithm, keybytes []byte, opts ...options.SignerOption) (*Asymmetric, error) {
+	if utils.IsEs(algo) {
 		key, err := jwt.ParseECPrivateKeyFromPEM(keybytes)
 		if err != nil {
 			return nil, err
 		}
-		return AsymmetricNew(method, key)
-	} else if utils.IsRs(method) {
+		return AsymmetricNew(algo, key)
+	} else if utils.IsRs(algo) {
 		key, err := jwt.ParseRSAPrivateKeyFromPEM(keybytes)
 		if err != nil {
 			return nil, err
 		}
-		return AsymmetricNew(method, key)
+		return AsymmetricNew(algo, key, opts...)
 	} else {
-		return nil, ErrUnexpectedAlgo
+		return nil, errs.ErrUnsupportAlgoType
 	}
 }
 
-// AsymmetricFromPEMFile 从路径上读取PEM密钥文件创建一个非对称加密签名器对象
-func AsymmetricFromPEMFile(method string, keyPath string) (*Asymmetric, error) {
+// AsymmetricFromPEMFile 从路径上读取PEM私钥文件创建一个非对称加密签名器对象
+func AsymmetricFromPEMFile(algo jwtrpcdeclare.EncryptionAlgorithm, keyPath string, opts ...options.SignerOption) (*Asymmetric, error) {
 	keybytes, err := utils.LoadData(keyPath)
 	if err != nil {
-		return nil, ErrLoadPrivateKey
+		return nil, errs.ErrLoadPrivateKey
 	}
-	return AsymmetricFromPEM(method, keybytes)
+	return AsymmetricFromPEM(algo, keybytes, opts...)
 }
 
-func (signer *Asymmetric) signany(claims jwt.MapClaims) (string, error) {
-	now := time.Now().Unix()
-	claims["jti"] = uuid.NewV4().String()
-	claims["iat"] = now
+func (signer *Asymmetric) Alg() string {
+	return signer.alg.Alg()
+}
+func (signer *Asymmetric) signany(claims jwt.MapClaims, opts ...options.SignOption) (string, error) {
+	if signer.opts.Iss != "" {
+		claims["iss"] = signer.opts.Iss
+	}
+	claims["iat"] = time.Now().Unix()
+	if signer.opts.JtiGen != nil {
+		jti, err := signer.opts.JtiGen.Next()
+		if err == nil {
+			claims["jti"] = jti
+		} else {
+			return "", err
+		}
+	}
+	defaultopt := &options.SignOptions{}
+	for _, opt := range opts {
+		opt.Apply(defaultopt)
+	}
+	if defaultopt.Sub != "" {
+		claims["sub"] = defaultopt.Sub
+	}
+	if defaultopt.Aud != nil {
+		claims["aud"] = defaultopt.Aud
+	}
+	var nbr int64 = 0
+	if defaultopt.Nbf != 0 {
+		nbr = defaultopt.Nbf
+	} else {
+		if signer.opts.DefaultEffectiveInterval > 0 {
+			nbr = time.Now().Add(signer.opts.DefaultEffectiveInterval).Unix()
+		}
+	}
+	if defaultopt.Exp != 0 {
+		claims["exp"] = defaultopt.Exp
+
+	} else {
+		if signer.opts.DefaultTTL > 0 {
+			if nbr > 0 {
+				claims["exp"] = time.Unix(nbr, 0).Add(signer.opts.DefaultTTL).Unix()
+			} else {
+				claims["exp"] = time.Now().Add(signer.opts.DefaultTTL).Unix()
+			}
+		}
+	}
+	if nbr > 0 {
+		claims["nbf"] = nbr
+	}
+
 	token := jwt.NewWithClaims(signer.alg, claims)
 	out, err := token.SignedString(signer.key)
 	if err != nil {
 		return "", err
-		//return "",
 	}
 	return out, nil
 }
 
-// Sign 签名一个无过期的token
-func (signer *Asymmetric) Sign(payload map[string]interface{}, aud string, iss string) (string, error) {
-	claims := makeclaims(payload, aud, iss, 0)
-	return signer.signany(claims)
-}
-
-// ExpSign 签名一个会过期的token
-func (signer *Asymmetric) ExpSign(payload map[string]interface{}, aud string, iss string, exp int64) (string, error) {
-	claims := makeclaims(payload, aud, iss, exp)
-	return signer.signany(claims)
-}
-
-// SignJSON 为json签名一个无过期的token
-func (signer *Asymmetric) SignJSON(jsonpayload []byte, aud string, iss string) (string, error) {
-	payload := map[string]interface{}{}
-	err := json.Unmarshal(jsonpayload, &payload)
+//Sign 签名一个token
+func (signer *Asymmetric) Sign(payload []byte, opts ...options.SignOption) (string, error) {
+	payloadclaims := jwt.MapClaims{}
+	err := json.Unmarshal(payload, &payloadclaims)
 	if err != nil {
-		return "", err
+		return "", err //ErrParseClaimsToJSON
 	}
-	return signer.Sign(payload, aud, iss)
-}
-
-// ExpSignJSON 为json签名一个无过期的token
-func (signer *Asymmetric) ExpSignJSON(jsonpayload []byte, aud string, iss string, exp int64) (string, error) {
-	payload := map[string]interface{}{}
-	err := json.Unmarshal(jsonpayload, &payload)
-	if err != nil {
-		return "", err
-	}
-	return signer.ExpSign(payload, aud, iss, exp)
-}
-
-// SignJSONString 为json字符串签名一个无过期的token
-func (signer *Asymmetric) SignJSONString(jsonstringpayload string, aud string, iss string) (string, error) {
-	jsonpayload := []byte(jsonstringpayload)
-	return signer.SignJSON(jsonpayload, aud, iss)
-}
-
-// ExpSignJSONString 为json字符串签名一个会过期的token
-func (signer *Asymmetric) ExpSignJSONString(jsonstringpayload string, aud string, iss string, exp int64) (string, error) {
-	jsonpayload := []byte(jsonstringpayload)
-	return signer.ExpSignJSON(jsonpayload, aud, iss, exp)
+	return signer.signany(payloadclaims, opts...)
 }

@@ -1,19 +1,28 @@
 package jwtverifier
 
 import (
+	"github.com/Basic-Components/jwttools/errs"
+	declare "github.com/Basic-Components/jwttools/jwtrpcdeclare"
+	"github.com/Basic-Components/jwttools/utils"
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // Symmetric jwt的对称的加密验证器
 type Symmetric struct {
 	key string
+	alg declare.EncryptionAlgorithm
 }
 
 // SymmetricNew 创建一个对称的加密验证器对象
-func SymmetricNew(key string) *Symmetric {
-	verifier := &Symmetric{
-		key: key}
-	return verifier
+func SymmetricNew(algo declare.EncryptionAlgorithm, key string) (*Symmetric, error) {
+	if !utils.IsSymmetric(algo) {
+		return nil, errs.ErrUnsupportAlgoType
+	}
+	verifier := &Symmetric{key: key, alg: algo}
+	return verifier, nil
+}
+func (verifier *Symmetric) Alg() string {
+	return verifier.alg.String()
 }
 
 // Verify 用Verifier对象验签
@@ -22,6 +31,9 @@ func (verifier *Symmetric) Verify(tokenstring string) (map[string]interface{}, e
 		tokenstring,
 		func(t *jwt.Token) (interface{}, error) {
 			// Don't forget to validate the alg is what you expect:
+			if t.Method.Alg() != verifier.alg.String() {
+				return nil, errs.ErrAlgoTypeNotMatch
+			}
 			return []byte(verifier.key), nil
 		})
 	if err != nil {
@@ -32,5 +44,5 @@ func (verifier *Symmetric) Verify(tokenstring string) (map[string]interface{}, e
 		var payload map[string]interface{} = claims
 		return payload, nil
 	}
-	return nil, ErrVerifyToken
+	return nil, errs.ErrVerifyToken
 }

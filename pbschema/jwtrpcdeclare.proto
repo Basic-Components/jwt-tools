@@ -1,0 +1,47 @@
+syntax = "proto3";
+package jwtrpcdeclare;
+option go_package = "jwtrpcdeclare";
+service JwtService {
+    //查看jwt服务使用的算法
+    rpc Algo (AlgoRequest) returns (AlgoResponse){}
+    // Sign 为JSON字符串签名
+    rpc Sign (SignRequest) returns (SignResponse){}
+    // Verify 将token解析到的负载转码为JSON字符串返回
+    rpc Verify (VerifyRequest) returns (VerifyResponse){}
+}
+enum EncryptionAlgorithm {
+    UNKNOWN = 0;
+    RS256 = 1;
+	RS384 = 2;
+	RS512 = 3;
+	ES256 = 4;
+	ES384 = 5;
+	ES512 = 6;
+	HS256 = 7;
+	HS384 = 8;
+	HS512 = 9;
+}
+message AlgoRequest {}
+message AlgoResponse {
+    EncryptionAlgorithm algo = 1;
+}
+message SignRequest {
+    bytes payload = 1;
+    string sub = 2;
+    int64 exp = 3;
+    int64 nbf = 4;
+    repeated string aud = 5;
+}
+
+message VerifyRequest {
+    string token = 1;
+}
+
+
+message SignResponse {
+    string token = 1;
+}
+
+message VerifyResponse {
+    bytes payload = 1;
+}

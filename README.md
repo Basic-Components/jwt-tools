@@ -120,20 +120,3 @@ func main(){
     fmt.Printf("claims: %v", gotclaims)
 }
 ```
-
-## change log
-
-### v2.1.0
-
-1. 增加了sdk的本地负载均衡方式
-2. 增加了代理对象方便初始化
-
-
-### v2.0.0
-
-完成了基本结构
-
-## todo
-
-1. 后续会封装python版本sdk和js版本sdk
-2. 后续会加上使用etcdv3做服务发现和负载均衡的方法
