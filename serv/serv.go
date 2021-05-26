@@ -23,6 +23,7 @@ import (
 	"github.com/Basic-Components/jwttools/jwtverifier"
 	"github.com/Basic-Components/jwttools/options"
 	"github.com/Basic-Components/jwttools/utils"
+	se "github.com/Golang-Tools/schema-entry-go"
 	grpc "google.golang.org/grpc"
 	channelz "google.golang.org/grpc/channelz/service"
 	"google.golang.org/grpc/credentials"
@@ -69,13 +70,12 @@ type Server struct {
 	Keepalive_Enforcement_Min_Time              int    `json:"keepalive_enforement_min_time,omitempty" jsonschema:"description=如果客户端超过每n秒ping一次则终止连接"`
 	Keepalive_Enforcement_Permit_Without_Stream bool   `json:"keepalive_enforement_permit_without_stream,omitempty" jsonschema:"description=即使没有活动流也允许ping"`
 
-	Algo_Type        string `json:"algo_type" jsonschema:"required,description=服务使用的加密算法,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=HS256,enum=HS384,enum=HS512""`
-	Secret_Key       string `json:"secret_key,omitempty" jsonschema:"description=对称加密构造hash的盐"`
-	Private_Key_Path string `json:"secret_key,omitempty" jsonschema:"description=非对称加密的私钥"`
-	Public_Key_Path  string `json:"public_key_path,omitempty" jsonschema:"description=非对称加密的公钥"`
-
-	Default_TTL                int64  `json:"secret_key,omitempty" jsonschema:"description=jwt默认的过期时长,单位s"`
-	Default_Effective_Interval int64  `json:"secret_key,omitempty" jsonschema:"description=jwt默认的生效间隔,单位s"`
+	Algo_Type                  string `json:"algo_type" jsonschema:"required,description=服务使用的加密算法,enum=RS256,enum=RS384,enum=RS512,enum=ES256,enum=ES384,enum=ES512,enum=HS256,enum=HS384,enum=HS512""`
+	Secret_Key                 string `json:"secret_key,omitempty" jsonschema:"description=对称加密构造hash的盐"`
+	Private_Key_Path           string `json:"secret_key,omitempty" jsonschema:"description=非对称加密的私钥"`
+	Public_Key_Path            string `json:"public_key_path,omitempty" jsonschema:"description=非对称加密的公钥"`
+	Default_TTL                int    `json:"secret_key,omitempty" jsonschema:"description=jwt默认的过期时长,单位s"`
+	Default_Effective_Interval int    `json:"secret_key,omitempty" jsonschema:"description=jwt默认的生效间隔,单位s"`
 	Jti_Gen                    string `json:"jti_gen,omitempty" jsonschema:"description=生成jti的生成器,enum=uuid4,enum=sonyflake"`
 
 	service       *registry.ServiceInfo
@@ -311,3 +311,15 @@ func (s *Server) Run() {
 		wg.Wait()
 	}
 }
+
+var Endpoint, _ = se.New(&se.EntryPointMeta{Name: "jwtcenter", Usage: "jwtcenter [options]"}, &Server{
+	App_Name:                   "jwtcenter",
+	App_Version:                "3.0.0",
+	Address:                    "0.0.0.0:5000",
+	Log_Level:                  "INFO",
+	Algo_Type:                  "HS256",
+	Secret_Key:                 "guesssecrest",
+	Default_TTL:                7 * 24 * 3600,
+	Default_Effective_Interval: 180,
+	Jti_Gen:                    "uuid4",
+})
